@@ -1,0 +1,22 @@
+{
+  "name": "ai-interviewer",
+  "version": "1.0.0",
+  "description": "AI-powered interview platform",
+  "scripts": {
+    "dev": "concurrently --names \"SERVER,CLIENT\" --prefix-colors \"yellow,blue\" \"npm run server\" \"npm run client\"",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm run dev",
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "groq-sdk": "^0.37.0",
+    "pdfkit": "^0.17.2",
+    "react-hot-toast": "^2.6.0"
+  }
+}
