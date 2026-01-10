@@ -5,11 +5,11 @@ A modern, full-stack web application that conducts AI-powered technical intervie
 ## ✨ Features
 
 ### 🎯 Core Functionality
-- **Smart Resume Parsing**: Upload resumes (PDF/DOCX) with AI-powered extraction of skills, experience, and projects
-- **Role-Specific Interviews**: Tailored questions for Frontend, Backend, Full Stack, and DevOps roles
-- **Real-time Speech Recognition**: Answer questions via voice or manual text input with automatic fallback
-- **AI-Powered Evaluation**: Strict, detailed scoring with feedback on technical accuracy and depth
-- **Comprehensive Results**: Detailed performance breakdown with highlights and recommendations
+- **AI-Powered Resume Parsing**: Upload resumes (PDF/DOCX) with intelligent AI extraction of skills, experience, projects, and technical expertise
+- **AI-Generated Role-Specific Interviews**: Dynamically generated questions tailored for Frontend, Backend, Full Stack, and DevOps roles using AI
+- **Real-time Speech Recognition**: Answer questions via voice or manual text input with automatic fallback for better accessibility in unsupported browsers
+- **AI-Driven Evaluation System**: Strict, intelligent scoring with AI-generated feedback on technical accuracy, depth, and completeness
+- **AI-Enhanced Results**: Comprehensive performance breakdown with AI-generated highlights, insights, and personalized recommendations
 
 ### 🎨 User Experience
 - **Responsive Design**: Fully responsive across mobile, tablet, and desktop
