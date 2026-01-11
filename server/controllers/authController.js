@@ -72,8 +72,6 @@ export const signup = async (req, res) => {
             });
         }
 
-        // Store user data temporarily (will be saved after OTP verification)
-        // For now, we'll send it back to frontend to resend on verification
         res.status(200).json({
             success: true,
             message: 'OTP sent to your email. Please verify to complete signup.',
@@ -345,14 +343,13 @@ export const getCurrentUser = async (req, res) => {
     }
 };
 
-// Logout (stateless - just inform client to delete token)
-// POST /api/auth/logout
-// Logout (stateless - just inform client to delete token)
+
+// Logout 
 // POST /api/auth/logout
 export const logout = async (req, res) => {
     res.json({
         success: true,
-        message: 'Logged out successfully. Please delete your token on the client side.'
+        message: 'Logged out successfully. '
     });
 };
 
@@ -372,11 +369,7 @@ export const sendResetOTP = async (req, res) => {
         const user = await User.findOne({ email: email.toLowerCase() });
 
         if (!user) {
-            // For security, don't reveal if user exists, but for UX we might want to interact.
-            // Let's return success even if user doesn't exist (security best practice), 
-            // OR if this is an internal tool/ MVP, return error. 
-            // Given the prompt "if exists email sent", implies we logic check.
-            // I'll return success to not leak emails, but only send if exists.
+            //success true not revealing if user exists or not
             return res.status(200).json({
                 success: true,
                 message: 'If an account exists with this email, a verification code has been sent.'
