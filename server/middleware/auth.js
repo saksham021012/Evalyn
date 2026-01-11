@@ -49,22 +49,4 @@ export const authenticate = async (req, res, next) => {
     }
 };
 
-// Optional authentication - doesn't fail if no token
-// Useful for endpoints that work differently for authenticated users
-export const optionalAuth = async (req, res, next) => {
-    try {
-        const authHeader = req.headers.authorization;
 
-        if (authHeader && authHeader.startsWith('Bearer ')) {
-            const token = authHeader.split(' ')[1];
-            const decoded = jwt.verify(token, config.jwtSecret);
-            req.userId = decoded.userId;
-        }
-
-        next();
-
-    } catch (error) {
-        // Continue without authentication
-        next();
-    }
-};
