@@ -15,7 +15,7 @@ const interviewSchema = new mongoose.Schema({
     // Interview configuration
     role: {
         type: String,
-        enum: ['frontend', 'backend', 'fullstack', 'dsa', 'devops', 'mobile', 'data-science', 'hr'],
+        enum: ['frontend', 'backend', 'fullstack', 'devops'],
         required: true
     },
     difficulty: {
