@@ -165,8 +165,6 @@ const interviewSchema = new mongoose.Schema({
 
 // Indexes
 interviewSchema.index({ user: 1, createdAt: -1 });
-interviewSchema.index({ status: 1 });
-interviewSchema.index({ resume: 1 });
 
 // Calculate overall score before saving
 interviewSchema.pre('save', function (next) {

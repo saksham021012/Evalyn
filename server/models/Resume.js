@@ -140,8 +140,6 @@ const resumeSchema = new mongoose.Schema({
 
 // Indexes for faster queries
 resumeSchema.index({ user: 1, createdAt: -1 });
-resumeSchema.index({ user: 1, isActive: 1 }); // Efficiently find active resume
-resumeSchema.index({ 'parsedData.skills.name': 1 });
 
 const Resume = mongoose.model('Resume', resumeSchema);
 
