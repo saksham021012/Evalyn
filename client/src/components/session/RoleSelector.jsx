@@ -1,10 +1,11 @@
 function RoleSelector({ targetRole, setTargetRole }) {
     const roles = [
-        { value: 'Frontend Developer', label: 'Frontend Developer' },
-        { value: 'Backend Developer', label: 'Backend Developer' },
-        { value: 'Full Stack Developer', label: 'Full Stack Developer' },
-        { value: 'DevOps Engineer', label: 'DevOps Engineer' }
+        { value: 'frontend', label: 'Frontend Developer' },
+        { value: 'backend', label: 'Backend Developer' },
+        { value: 'fullstack', label: 'Full Stack Developer' },
+        { value: 'devops', label: 'DevOps Engineer' }
     ];
+
 
     return (
         <div className="mb-8">
