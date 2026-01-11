@@ -24,6 +24,27 @@ A modern, full-stack web application that conducts AI-powered technical intervie
 - **Password Reset**: Secure password recovery flow
 - **Protected Routes**: Role-based access control
 
+## 📸 Screenshots
+### 🏠 Home Page
+<img width="1919" height="869" alt="image" src="https://github.com/user-attachments/assets/eed6de26-2330-43a9-a81a-66f490556a1e" />
+
+### SignUp
+<img width="1919" height="876" alt="image" src="https://github.com/user-attachments/assets/fde468c2-3e02-4eb8-9464-176f0b1297cd" />
+
+### Dashboard
+<img width="1912" height="872" alt="image" src="https://github.com/user-attachments/assets/e1e40498-aabd-4097-86da-0f524e7a8ed2" />
+
+### Resumes
+<img width="1919" height="866" alt="image" src="https://github.com/user-attachments/assets/d1fc6e3d-ad78-49da-8217-56c9eeaafe05" />
+
+### Interview Page
+<img width="1898" height="878" alt="image" src="https://github.com/user-attachments/assets/3afd4535-7131-48ed-868f-c6455faa707c" />
+
+### Report
+<img width="847" height="867" alt="image" src="https://github.com/user-attachments/assets/1aa3f1e2-98c3-4d92-a663-63d2d5249a14" />
+
+
+
 ## 🛠️ Tech Stack
 
 ### Frontend
