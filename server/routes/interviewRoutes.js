@@ -11,7 +11,7 @@ import {
     deleteInterview
 } from '../controllers/interviewController.js';
 import { authenticate } from '../middleware/auth.js';
-import { uploadVideo } from '../middleware/upload.js';
+
 
 const router = express.Router();
 
@@ -33,8 +33,8 @@ router.post('/:id/start', startInterview);
 // Get next question
 router.get('/:id/next-question', getNextQuestion);
 
-// Submit answer (with video upload)
-router.post('/:id/answer', uploadVideo, submitAnswer);
+// Submit answer
+router.post('/:id/answer', submitAnswer);
 
 // Skip question
 router.post('/:id/skip', skipQuestion);

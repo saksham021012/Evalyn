@@ -23,9 +23,27 @@ const getGroqCompletion = async (prompt) => {
 // Helper to clean and parse JSON
 const parseJSON = (text) => {
   try {
-    let jsonText = text.trim();
-    // Remove markdown code blocks if present
-    jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+    // Find the first structural character ({ or [)
+    const startBrace = text.indexOf('{');
+    const startBracket = text.indexOf('[');
+
+    let start = -1;
+    if (startBrace !== -1 && startBracket !== -1) {
+      start = Math.min(startBrace, startBracket);
+    } else {
+      start = startBrace !== -1 ? startBrace : startBracket;
+    }
+
+    // Find the last structural character (} or ])
+    const endBrace = text.lastIndexOf('}');
+    const endBracket = text.lastIndexOf(']');
+    const end = Math.max(endBrace, endBracket);
+
+    if (start === -1 || end === -1 || end < start) {
+      throw new Error("No JSON object or array found in response");
+    }
+
+    const jsonText = text.substring(start, end + 1);
     return JSON.parse(jsonText);
   } catch (error) {
     console.error("JSON Parse Error:", error);

@@ -3,32 +3,32 @@ import { config } from '../config/config.js';
 
 // Create reusable transporter
 const transporter = nodemailer.createTransport({
-    host: config.email.host,
-    port: config.email.port,
-    secure: false, // true for 465, false for other ports
-    auth: {
-        user: config.email.user,
-        pass: config.email.password
-    }
+  host: config.email.host,
+  port: config.email.port,
+  secure: false, // true for 465, false for other ports
+  auth: {
+    user: config.email.user,
+    pass: config.email.password
+  }
 });
 
 /**
  * Generate 6-digit OTP
  */
 export const generateOTP = () => {
-    return Math.floor(100000 + Math.random() * 900000).toString();
+  return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
 /**
  * Send OTP email
  */
 export const sendOTPEmail = async (email, otp, purpose = 'signup') => {
-    try {
-        const subject = purpose === 'signup'
-            ? 'Verify Your Email - AI Interviewer'
-            : 'Reset Your Password - AI Interviewer';
+  try {
+    const subject = purpose === 'signup'
+      ? 'Verify Your Email - AI Interviewer'
+      : 'Reset Your Password - AI Interviewer';
 
-        const html = `
+    const html = `
       <!DOCTYPE html>
       <html>
       <head>
@@ -65,36 +65,36 @@ export const sendOTPEmail = async (email, otp, purpose = 'signup') => {
       </html>
     `;
 
-        const mailOptions = {
-            from: `"AI Interviewer" <${config.email.user}>`,
-            to: email,
-            subject: subject,
-            html: html
-        };
+    const mailOptions = {
+      from: `"AI Interviewer" <${config.email.user}>`,
+      to: email,
+      subject: subject,
+      html: html
+    };
 
-        const info = await transporter.sendMail(mailOptions);
+    const info = await transporter.sendMail(mailOptions);
 
-        console.log('Email sent:', info.messageId);
-        return {
-            success: true,
-            messageId: info.messageId
-        };
+    console.log('Email sent:', info.messageId);
+    return {
+      success: true,
+      messageId: info.messageId
+    };
 
-    } catch (error) {
-        console.error('Error sending email:', error);
-        return {
-            success: false,
-            error: error.message
-        };
-    }
+  } catch (error) {
+    console.error('Error sending email:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
 };
 
 /**
  * Send welcome email after successful verification
  */
 export const sendWelcomeEmail = async (email, name) => {
-    try {
-        const html = `
+  try {
+    const html = `
       <!DOCTYPE html>
       <html>
       <head>
@@ -118,7 +118,6 @@ export const sendWelcomeEmail = async (email, name) => {
             <ul>
               <li>📄 Upload your resume for AI-powered analysis</li>
               <li>🎯 Take personalized technical interviews</li>
-              <li>📹 Record video responses</li>
               <li>📊 Get detailed performance feedback</li>
               <li>📈 Track your progress over time</li>
             </ul>
@@ -132,16 +131,16 @@ export const sendWelcomeEmail = async (email, name) => {
       </html>
     `;
 
-        const mailOptions = {
-            from: `"AI Interviewer" <${config.email.user}>`,
-            to: email,
-            subject: 'Welcome to AI Interviewer! 🎉',
-            html: html
-        };
+    const mailOptions = {
+      from: `"AI Interviewer" <${config.email.user}>`,
+      to: email,
+      subject: 'Welcome to AI Interviewer! 🎉',
+      html: html
+    };
 
-        await transporter.sendMail(mailOptions);
+    await transporter.sendMail(mailOptions);
 
-    } catch (error) {
-        console.error('Error sending welcome email:', error);
-    }
+  } catch (error) {
+    console.error('Error sending welcome email:', error);
+  }
 };
