@@ -8,7 +8,6 @@ import authRoutes from './routes/authRoutes.js';
 import resumeRoutes from './routes/resumeRoutes.js';
 import interviewRoutes from './routes/interviewRoutes.js';
 import resultsRoutes from './routes/resultsRoutes.js';
-import videoRoutes from './routes/videoRoutes.js';
 
 const app = express();
 
@@ -39,7 +38,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/resumes', resumeRoutes);
 app.use('/api/interviews', interviewRoutes);
 app.use('/api/results', resultsRoutes);
-app.use('/api/videos', videoRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
