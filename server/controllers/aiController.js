@@ -4,7 +4,7 @@ import { config } from '../config/config.js';
 // Initialize Groq AI
 const groq = new Groq({ apiKey: config.groqApiKey });
 
-// Helper to get completion from Groq
+// Helper to get answers from Groq
 const getGroqCompletion = async (prompt) => {
   const completion = await groq.chat.completions.create({
     messages: [
@@ -365,18 +365,4 @@ Be honest, constructive, and specific. Highlight resume exaggerations if found.
   }
 };
 
-// Determine next question difficulty based on performance
-export const determineNextDifficulty = (recentScores, currentDifficulty) => {
-  if (recentScores.length < 2) return currentDifficulty;
 
-  const avgRecentScore = recentScores.reduce((a, b) => a + b, 0) / recentScores.length;
-
-  // Adaptive logic
-  if (avgRecentScore >= 8 && currentDifficulty !== 'hard') {
-    return currentDifficulty === 'easy' ? 'medium' : 'hard';
-  } else if (avgRecentScore <= 4 && currentDifficulty !== 'easy') {
-    return currentDifficulty === 'hard' ? 'medium' : 'easy';
-  }
-
-  return currentDifficulty;
-};
