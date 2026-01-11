@@ -1,7 +1,7 @@
 import Interview from '../models/Interview.js';
 import Resume from '../models/Resume.js';
 import mongoose from 'mongoose';
-import { generateInterviewQuestions, evaluateAnswer, generateInterviewSummary, determineNextDifficulty } from './aiController.js';
+import { generateInterviewQuestions, evaluateAnswer, generateInterviewSummary } from './aiController.js';
 
 // Create new interview session
 // POST /api/interviews/create
@@ -35,7 +35,7 @@ export const createInterview = async (req, res) => {
             });
         }
 
-        // Get resume using Mongoose
+        // get resume
         const resume = await Resume.findById(resumeId);
 
         if (!resume) {
@@ -56,7 +56,7 @@ export const createInterview = async (req, res) => {
             });
         }
 
-        // Create interview using Mongoose model
+        // Create interview 
         const interview = new Interview({
             user: userId,
             resume: resumeId,
@@ -72,11 +72,6 @@ export const createInterview = async (req, res) => {
             })),
             stats: {
                 totalQuestions: questionsResult.questions.length
-            },
-            adaptiveData: {
-                currentDifficulty: difficulty,
-                performanceTrend: 'stable',
-                focusAreas: []
             }
         });
 
@@ -199,7 +194,7 @@ export const getNextQuestion = async (req, res) => {
             });
         }
 
-        // Mark question as asked if not already
+        // mark question as asked 
         if (!nextQuestion.askedAt) {
             nextQuestion.askedAt = new Date();
             await interview.save();
@@ -226,11 +221,6 @@ export const submitAnswer = async (req, res) => {
     try {
         const { id } = req.params;
 
-        // DEBUG: Log everything we receive
-        console.log('=== SUBMIT ANSWER DEBUG ===');
-        console.log('Session ID:', id);
-        console.log('req.body:', req.body);
-
         const { questionNumber, transcript } = req.body;
 
         const interview = await Interview.findById(id).populate('resume');
@@ -242,35 +232,18 @@ export const submitAnswer = async (req, res) => {
             });
         }
 
-        // DEBUG: Log interview questions
-        console.log('Interview questions count:', interview.questions.length);
-        console.log('Question numbers:', interview.questions.map(q => q.questionNumber));
-        console.log('Received questionNumber (raw):', questionNumber, 'type:', typeof questionNumber);
-
-        // Convert questionNumber to integer (FormData sends as string)
         const questionNum = parseInt(questionNumber, 10);
-        console.log('Converted questionNum:', questionNum, 'type:', typeof questionNum);
 
         const question = interview.questions.find(q => {
-            console.log('Comparing:', q.questionNumber, 'with', questionNum, 'equal?', q.questionNumber === questionNum);
             return q.questionNumber === questionNum;
         });
 
         if (!question) {
-            console.log('QUESTION NOT FOUND!');
             return res.status(404).json({
                 success: false,
                 message: 'Question not found'
             });
         }
-
-        console.log('Found question:', question.questionNumber);
-        console.log('=== END DEBUG ===');
-
-        console.log('📝 Transcript received:', transcript);
-        console.log('📝 Transcript type:', typeof transcript);
-        console.log('📝 Transcript length:', transcript?.length);
-
         // Save answer
         question.answer = {
             transcript: transcript || '',
@@ -285,7 +258,6 @@ export const submitAnswer = async (req, res) => {
         }
 
         // Evaluate answer using AI
-        console.log('🤖 Calling evaluateAnswer with transcript:', transcript);
         const evaluationResult = await evaluateAnswer(question, transcript, interview.resume.parsedData);
 
         if (evaluationResult.success) {
@@ -299,16 +271,7 @@ export const submitAnswer = async (req, res) => {
         interview.stats.questionsAnswered += 1;
         interview.stats.totalTimeSpent += question.timeSpent || 0;
 
-        // Adaptive difficulty adjustment
-        const recentScores = interview.questions
-            .filter(q => q.evaluation && q.evaluation.score !== undefined)
-            .slice(-3)
-            .map(q => q.evaluation.score);
 
-        if (recentScores.length >= 2) {
-            const newDifficulty = determineNextDifficulty(recentScores, interview.adaptiveData.currentDifficulty);
-            interview.adaptiveData.currentDifficulty = newDifficulty;
-        }
 
         await interview.save();
 
@@ -316,8 +279,7 @@ export const submitAnswer = async (req, res) => {
             success: true,
             message: 'Answer submitted and evaluated',
             data: {
-                evaluation: question.evaluation,
-                nextDifficulty: interview.adaptiveData.currentDifficulty
+                evaluation: question.evaluation
             }
         });
 
@@ -347,7 +309,7 @@ export const skipQuestion = async (req, res) => {
             });
         }
 
-        // Check skip limit (increased to 3)
+        //  skip limit
         if (interview.stats.questionsSkipped >= 3) {
             return res.status(400).json({
                 success: false,
@@ -355,7 +317,7 @@ export const skipQuestion = async (req, res) => {
             });
         }
 
-        // Convert questionNumber to integer (FormData sends as string)
+        // convert questionNumber to integer (FormData sends as string)
         const questionNum = parseInt(questionNumber, 10);
 
         const question = interview.questions.find(q => q.questionNumber === questionNum);
