@@ -263,3 +263,22 @@ export function deleteInterview(sessionId) {
         }
     };
 }
+
+export function getLiveKitToken(sessionId) {
+    return async (dispatch) => {
+        try {
+            const interviewBaseUrl = START_INTERVIEW_API.replace('/create', '');
+            const response = await apiConnector('POST', `${interviewBaseUrl}/${sessionId}/token`, {});
+            console.log('GET LIVEKIT TOKEN RESPONSE............', response);
+            if (!response.success) {
+                throw new Error(response.message);
+            }
+            return response.data;
+        } catch (error) {
+            console.log('GET LIVEKIT TOKEN ERROR............', error);
+            toast.error(error.message || 'Failed to generate connection token');
+            throw error;
+        }
+    };
+}
+

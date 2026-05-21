@@ -8,7 +8,8 @@ import {
     skipQuestion,
     completeInterview,
     getUserInterviews,
-    deleteInterview
+    deleteInterview,
+    getLiveKitToken
 } from '../controllers/interviewController.js';
 import { authenticate } from '../middleware/auth.js';
 
@@ -26,6 +27,9 @@ router.get('/:id', getInterviewById);
 
 // Delete interview
 router.delete('/:id', deleteInterview);
+
+// Get LiveKit token
+router.post('/:id/token', getLiveKitToken);
 
 // Start interview
 router.post('/:id/start', startInterview);

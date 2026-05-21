@@ -124,7 +124,7 @@ Extract and return ONLY a valid JSON object with the following structure (no mar
 }
 
 IMPORTANT RULES:
-1. For skill "category", ONLY use these exact values: frontend, backend, database, devops, tools, soft-skills, other
+1. For skill "category", ONLY use one of these exact values: frontend, backend, database, devops, tools, soft-skills, other. DO NOT combine them with pipes, slashes, or other text (e.g. do NOT output "frontend|backend"). If a skill spans multiple categories, select the single best fit.
 2. For skill "proficiency", ALWAYS provide one of: beginner, intermediate, advanced, expert
 3. If proficiency is not clear from resume, estimate based on context and experience level
 4. Be thorough and extract as much information as possible. If a field is not found, use empty string or empty array.
@@ -133,6 +133,45 @@ IMPORTANT RULES:
     const response = await getGroqCompletion(prompt);
     console.log('Resume Parsing Response:', response);
     const parsedData = parseJSON(response);
+
+    // Sanitize and validate enums before saving to prevent Mongoose schema validation failures
+    if (parsedData && Array.isArray(parsedData.skills)) {
+      const validCategories = ['frontend', 'backend', 'database', 'devops', 'tools', 'soft-skills', 'other'];
+      const validProficiencies = ['beginner', 'intermediate', 'advanced', 'expert'];
+
+      parsedData.skills = parsedData.skills.map(skill => {
+        let category = String(skill.category || 'other').toLowerCase().trim();
+        if (!validCategories.includes(category)) {
+          // Try to find a valid category as a substring (e.g., 'frontend|backend' -> 'frontend')
+          const found = validCategories.find(c => category.includes(c));
+          category = found ? found : 'other';
+        }
+
+        let proficiency = String(skill.proficiency || 'intermediate').toLowerCase().trim();
+        if (!validProficiencies.includes(proficiency)) {
+          const found = validProficiencies.find(p => proficiency.includes(p));
+          proficiency = found ? found : 'intermediate';
+        }
+
+        return {
+          ...skill,
+          category,
+          proficiency
+        };
+      });
+    }
+
+    if (parsedData && parsedData.experienceLevel) {
+      const validExpLevels = ['fresher', 'junior', 'mid-level', 'senior', 'expert'];
+      let expLevel = String(parsedData.experienceLevel).toLowerCase().trim();
+      if (!validExpLevels.includes(expLevel)) {
+        if (expLevel.includes('fresh')) expLevel = 'fresher';
+        else if (expLevel.includes('mid')) expLevel = 'mid-level';
+        else if (expLevel.includes('lead') || expLevel.includes('sr')) expLevel = 'senior';
+        else expLevel = 'fresher';
+      }
+      parsedData.experienceLevel = expLevel;
+    }
 
     return {
       success: true,

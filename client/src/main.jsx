@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import { Toaster } from 'react-hot-toast';
 import App from './App.jsx';
 import './index.css';
+import '@livekit/components-styles';
 import { store } from './redux/store';
 
 ReactDOM.createRoot(document.getElementById('root')).render(

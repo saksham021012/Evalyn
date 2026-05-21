@@ -1,21 +1,14 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import InterviewTopBar from '../components/interview/InterviewTopBar';
-import QuestionProgress from '../components/interview/QuestionProgress';
-import QuestionCard from '../components/interview/QuestionCard';
-import VideoRecorder from '../components/interview/VideoRecorder';
-import InterviewControls from '../components/interview/InterviewControls';
-import LiveTranscript from '../components/interview/LiveTranscript';
-import InterviewCompleted from '../components/interview/InterviewCompleted';
-import { startInterview, getQuestion, submitAnswer, endInterview, skipQuestion } from '../services';
-import useTextToSpeech from '../hooks/useTextToSpeech';
-import useSpeechRecognition from '../hooks/useSpeechRecognition';
-import useSessionTimer from '../hooks/useSessionTimer';
+import { LiveKitRoom } from '@livekit/components-react';
+import { Loader2, AlertTriangle, ShieldCheck } from 'lucide-react';
 
-const MAX_SKIPS = 3;
-const TOTAL_QUESTIONS = 10;
+import InterviewTopBar from '../components/interview/InterviewTopBar';
+import LiveKitInterview from '../components/interview/LiveKitInterview';
+import { startInterview, getLiveKitToken, getInterviewSession } from '../services';
+import useSessionTimer from '../hooks/useSessionTimer';
 
 const getSessionId = (interviewSession) => {
     return interviewSession?.interview?._id || interviewSession?.sessionId || interviewSession?._id;
@@ -34,35 +27,17 @@ function InterviewPage() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { resumeData } = useSelector((state) => state.resume);
-    const { interviewSession, currentQuestion } = useSelector((state) => state.interview);
+    const { interviewSession } = useSelector((state) => state.interview);
     const { loading } = useSelector((state) => state.auth);
 
-    const [isRecording, setIsRecording] = useState(false);
-    const [isProcessing, setIsProcessing] = useState(false);
-    const [skipsUsed, setSkipsUsed] = useState(0);
-    const [recordedVideoBlob, setRecordedVideoBlob] = useState(null);
-    const [useManualInput, setUseManualInput] = useState(false);
-    const [manualText, setManualText] = useState('');
+    const [tokenData, setTokenData] = useState(null);
+    const [isFetchingToken, setIsFetchingToken] = useState(false);
+    const [tokenError, setTokenError] = useState(null);
+    const [isFinalizing, setIsFinalizing] = useState(false);
+    const [evaluationProgress, setEvaluationProgress] = useState(0);
 
-    const { isSpeaking, speak, stop: stopSpeaking } = useTextToSpeech();
-    const { transcript, transcriptRef, resetTranscript, finalizeTranscript, hasError, errorType } = useSpeechRecognition(
-        isRecording,
-        recordedVideoBlob
-    );
     const sessionTime = useSessionTimer();
-
-    // Auto-switch to manual input when speech recognition fails
-    useEffect(() => {
-        if (hasError && errorType && !useManualInput) {
-            setUseManualInput(true);
-            toast.error(
-                errorType === 'network'
-                    ? 'Speech recognition unavailable. Switched to manual text input.'
-                    : 'Speech recognition error. Switched to manual text input.',
-                { duration: 5000 }
-            );
-        }
-    }, [hasError, errorType, useManualInput]);
+    const pollingIntervalRef = useRef(null);
 
     // Initialize session
     useEffect(() => {
@@ -78,173 +53,198 @@ function InterviewPage() {
         initSession();
     }, [resumeData, navigate, dispatch, interviewSession]);
 
-    // Load question and speak it
+    // Fetch LiveKit connection token once session is ready
     useEffect(() => {
-        const sessionId = getSessionId(interviewSession);
-        if (sessionId && !currentQuestion) {
-            dispatch(getQuestion(sessionId));
-        }
-    }, [interviewSession, currentQuestion, dispatch]);
-
-    useEffect(() => {
-        if (currentQuestion?.questionText) {
-            speak(currentQuestion.questionText);
-        }
-    }, [currentQuestion, speak]);
-
-    const handleRecordingComplete = useCallback(() => {
-        finalizeTranscript();
-        setRecordedVideoBlob(true);
-    }, [finalizeTranscript]);
-
-    const handleReRecord = useCallback(() => {
-        setRecordedVideoBlob(null);
-        resetTranscript();
-        setManualText('');
-        setIsRecording(true);
-    }, [resetTranscript]);
-
-    const handleSubmitAnswer = useCallback(async () => {
-        if (!interviewSession || !currentQuestion) return;
-
-        const finalTranscript = useManualInput ? manualText : (transcript || transcriptRef.current);
-        const sessionId = getSessionId(interviewSession);
-
-        setIsProcessing(true);
-        try {
-            const result = await dispatch(submitAnswer({
-                sessionId,
-                questionNumber: currentQuestion.questionNumber,
-                transcript: finalTranscript.trim()
-            }));
-
-            if (result?.isCompleted) {
-                navigate(`/interview/results/${sessionId}`);
-            } else {
-                setRecordedVideoBlob(null);
-                resetTranscript();
-                setManualText('');
-                dispatch(getQuestion(sessionId));
-            }
-        } catch (error) {
-            console.error('Failed to submit answer:', error);
-        } finally {
-            setIsProcessing(false);
-        }
-    }, [interviewSession, currentQuestion, transcript, transcriptRef, useManualInput, manualText, dispatch, navigate, resetTranscript]);
-
-    const handleSkip = useCallback(async () => {
-        if (skipsUsed >= MAX_SKIPS || !currentQuestion) return;
-
-        stopSpeaking();
-        setSkipsUsed(prev => prev + 1);
-
-        try {
+        const fetchToken = async () => {
             const sessionId = getSessionId(interviewSession);
-            await dispatch(skipQuestion(sessionId, currentQuestion.questionNumber));
+            if (sessionId && !tokenData && !isFetchingToken && !tokenError) {
+                setIsFetchingToken(true);
+                setTokenError(null);
+                try {
+                    const data = await dispatch(getLiveKitToken(sessionId));
+                    if (data && data.token) {
+                        setTokenData(data);
+                    } else {
+                        throw new Error("Invalid token data received from server");
+                    }
+                } catch (err) {
+                    console.error('Failed to get LiveKit token:', err);
+                    setTokenError(err.message || 'Failed to fetch connection token from server');
+                    toast.error(err.message || 'Connection token generation failed');
+                } finally {
+                    setIsFetchingToken(false);
+                }
+            }
+        };
+        fetchToken();
+    }, [interviewSession, tokenData, isFetchingToken, tokenError, dispatch]);
 
-            setRecordedVideoBlob(null);
-            setIsRecording(false);
-            resetTranscript();
-            setManualText('');
-        } catch (error) {
-            console.error('Failed to skip question:', error);
-            setSkipsUsed(prev => prev - 1);
-        }
-    }, [skipsUsed, currentQuestion, stopSpeaking, interviewSession, dispatch, resetTranscript]);
-
-    const handleEndSession = useCallback(async () => {
-        stopSpeaking();
-        const sessionId = getSessionId(interviewSession);
-        if (sessionId) {
-            await dispatch(endInterview(sessionId, navigate));
-        } else {
-            navigate('/dashboard');
-        }
-    }, [stopSpeaking, interviewSession, dispatch, navigate]);
-
-    const handleToggleRecording = useCallback(() => {
-        setIsRecording(prev => !prev);
+    // Cleanup polling on unmount
+    useEffect(() => {
+        return () => {
+            if (pollingIntervalRef.current) {
+                clearInterval(pollingIntervalRef.current);
+            }
+        };
     }, []);
 
-    const handleToggleInputMode = useCallback((manual) => {
-        setUseManualInput(manual);
-        if (manual) {
-            // Copy transcript to manual text when switching
-            setManualText(transcript || transcriptRef.current);
+    // Handle end session and start polling for complete evaluations
+    const handleEndSession = useCallback(() => {
+        const sessionId = getSessionId(interviewSession);
+        if (!sessionId) {
+            navigate('/dashboard');
+            return;
         }
-    }, [transcript, transcriptRef]);
 
-    if (!currentQuestion && loading) {
+        setIsFinalizing(true);
+        toast.success('Interview ended. Analyzing transcript...');
+
+        // Start progressive loading feedback bar
+        const progressTimer = setInterval(() => {
+            setEvaluationProgress(prev => {
+                if (prev >= 95) {
+                    clearInterval(progressTimer);
+                    return 95;
+                }
+                return prev + 5;
+            });
+        }, 1200);
+
+        // Start polling the DB for complete status
+        pollingIntervalRef.current = setInterval(async () => {
+            try {
+                const updatedSession = await dispatch(getInterviewSession(sessionId));
+                if (updatedSession && updatedSession.status === 'completed') {
+                    clearInterval(pollingIntervalRef.current);
+                    clearInterval(progressTimer);
+                    setEvaluationProgress(100);
+                    toast.success('Analysis ready! Viewing dashboard report.');
+                    setTimeout(() => {
+                        navigate(`/interview/results/${sessionId}`);
+                    }, 500);
+                }
+            } catch (err) {
+                console.error('Error polling interview session:', err);
+            }
+        }, 3000);
+    }, [interviewSession, dispatch, navigate]);
+
+    // Handle when LiveKit disconnects (e.g. server closes connection, or user disconnects)
+    const handleDisconnected = useCallback(() => {
+        console.log('[LiveKitRoom] Disconnected from room.');
+        handleEndSession();
+    }, [handleEndSession]);
+
+    // Loading screen for preparing session
+    if (!interviewSession && loading) {
         return (
-            <div className="min-h-screen bg-black flex items-center justify-center text-white">
+            <div className="min-h-screen bg-black flex items-center justify-center text-white font-inter">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                    <p className="text-gray-400">Preparing your interview...</p>
+                    <Loader2 className="animate-spin h-12 w-12 text-blue-500 mx-auto mb-4" />
+                    <p className="text-gray-400 font-medium">Preparing your interview session...</p>
                 </div>
             </div>
         );
     }
 
-    if (!currentQuestion && !loading && interviewSession) {
-        return <InterviewCompleted onEndSession={handleEndSession} />;
+    // Loader for LiveKit token fetching
+    if (isFetchingToken || (!tokenData && !tokenError)) {
+        return (
+            <div className="min-h-screen bg-black flex items-center justify-center text-white font-inter">
+                <div className="text-center max-w-sm px-6">
+                    <Loader2 className="animate-spin h-12 w-12 text-blue-500 mx-auto mb-4" />
+                    <p className="text-gray-300 font-semibold mb-2">Connecting to LiveKit Room...</p>
+                    <p className="text-gray-500 text-xs leading-relaxed">
+                        Initializing audio pipelines and waking up the AI interviewer. Please wait.
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    // Error handler for LiveKit configuration issues
+    if (tokenError) {
+        return (
+            <div className="min-h-screen bg-black flex items-center justify-center text-white font-inter">
+                <div className="max-w-md w-full mx-auto px-6 py-8 bg-slate-900/50 border border-red-500/20 rounded-2xl text-center backdrop-blur-sm shadow-xl">
+                    <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+                    <h2 className="text-xl font-bold mb-2">Connection Failed</h2>
+                    <p className="text-slate-400 text-sm leading-relaxed mb-6">
+                        {tokenError}. Make sure your backend `.env` variables (LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET) are fully configured and correct.
+                    </p>
+                    <button
+                        onClick={() => setTokenError(null)}
+                        className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-semibold transition"
+                    >
+                        Retry Connection
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // Finalizing / Polling screen
+    if (isFinalizing) {
+        return (
+            <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white p-8 font-inter">
+                <div className="max-w-md w-full text-center bg-slate-900/50 border border-slate-800 rounded-2xl p-10 backdrop-blur-sm shadow-2xl shadow-blue-900/10">
+                    <div className="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-blue-500/20 shadow-lg shadow-blue-500/5 animate-pulse">
+                        <ShieldCheck className="w-10 h-10 text-blue-500 animate-pulse" />
+                    </div>
+                    <h1 className="text-2xl font-bold mb-3 bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent tracking-tight">
+                        Analyzing Performance
+                    </h1>
+                    <p className="text-gray-400 text-xs leading-relaxed mb-6">
+                        The interviewer has completed. Our AI model is cleaning up the audio transcripts, extracting questions asked, and scoring your performance feedback.
+                    </p>
+
+                    {/* Progress Bar */}
+                    <div className="w-full bg-slate-950 rounded-full h-1.5 mb-2 overflow-hidden border border-slate-800">
+                        <div 
+                            className="bg-gradient-to-r from-blue-500 to-emerald-400 h-1.5 rounded-full transition-all duration-700" 
+                            style={{ width: `${evaluationProgress}%` }}
+                        ></div>
+                    </div>
+                    <div className="flex justify-between text-[10px] text-slate-500 font-mono uppercase tracking-wider">
+                        <span>Progress</span>
+                        <span>{evaluationProgress}%</span>
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     return (
-        <div className="flex min-h-screen bg-black">
+        <div className="flex min-h-screen bg-black select-none">
             <div className="flex-1 flex flex-col">
                 <InterviewTopBar
                     sessionTime={sessionTime}
                     onEndSession={handleEndSession}
                 />
 
-                <div className="flex-1 p-4 sm:p-6 lg:p-8">
-                    <div className="max-w-6xl mx-auto">
-                        <QuestionProgress
-                            currentIndex={(currentQuestion?.questionNumber || 1) - 1}
-                            total={TOTAL_QUESTIONS}
-                        />
-
-                        <QuestionCard
-                            question={currentQuestion?.questionText || 'Loading question...'}
-                            isSpeaking={isSpeaking}
-                            onStopSpeaking={stopSpeaking}
-                        />
-
-                        <VideoRecorder
-                            isRecording={isRecording}
-                            onRecordingComplete={handleRecordingComplete}
-                        />
-
-                        <LiveTranscript
-                            transcript={transcript}
-                            isRecording={isRecording}
-                            isProcessing={isProcessing}
-                            useManualInput={useManualInput}
-                            onManualTextChange={setManualText}
-                            manualText={manualText}
-                            speechError={hasError ? errorType : null}
-                            onToggleInputMode={handleToggleInputMode}
-                        />
-
-                        <InterviewControls
-                            isRecording={isRecording}
-                            onToggleRecording={handleToggleRecording}
-                            onReRecord={handleReRecord}
-                            onSubmit={handleSubmitAnswer}
-                            onSkip={handleSkip}
-                            skipsRemaining={MAX_SKIPS - skipsUsed}
-                            canSkip={!isProcessing && !isRecording}
-                            canSubmit={!!recordedVideoBlob && !isRecording}
-                            isProcessing={isProcessing}
-                            useManualInput={useManualInput}
-                        />
-                    </div>
+                <div className="flex-1 p-4 sm:p-6 lg:p-8 flex items-center justify-center">
+                    {tokenData && (
+                        <LiveKitRoom
+                            token={tokenData.token}
+                            serverUrl={tokenData.serverUrl}
+                            connect={true}
+                            audio={true}
+                            video={true}
+                            onDisconnected={handleDisconnected}
+                            className="w-full"
+                        >
+                            <LiveKitInterview 
+                                sessionId={getSessionId(interviewSession)} 
+                                onEndSession={handleEndSession} 
+                            />
+                        </LiveKitRoom>
+                    )}
                 </div>
 
-                <div className="bg-black border-t border-slate-800 px-8 py-3">
-                    <div className="flex items-center justify-between text-xs text-gray-600">
-                        <span>● SYSTEMS NOMINAL</span>
+                <div className="bg-black border-t border-slate-800 px-8 py-3 shrink-0">
+                    <div className="flex items-center justify-between text-[10px] text-slate-600 font-mono tracking-widest uppercase">
+                        <span>● LIVEKIT SYSTEM SECURED</span>
+                        <span>TURN DETECTION SILERO VAD ACTIVE</span>
                     </div>
                 </div>
             </div>

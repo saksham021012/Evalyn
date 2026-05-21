@@ -6,6 +6,8 @@
     "dev": "concurrently --names \"SERVER,CLIENT\" --prefix-colors \"yellow,blue\" \"npm run server\" \"npm run client\"",
     "server": "cd server && npm run dev",
     "client": "cd client && npm run dev",
+    "agent": "cd server && npm run agent",
+    "build": "npm run build --prefix client",
     "install-all": "npm install && cd server && npm install && cd ../client && npm install"
   },
   "keywords": [],

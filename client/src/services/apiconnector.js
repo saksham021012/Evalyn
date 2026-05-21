@@ -46,7 +46,14 @@ export const apiConnector = async (
                 case 401:
                     localStorage.removeItem('token');
                     localStorage.removeItem('user');
-                    window.location.href = '/login';
+                    // Only redirect if the 401 error didn't occur during the login/signup/verification phase itself
+                    if (!url.includes('/auth/login') && 
+                        !url.includes('/auth/signup') && 
+                        !url.includes('/auth/verify-otp') && 
+                        !url.includes('/auth/forgot-password') && 
+                        !url.includes('/auth/reset-password')) {
+                        window.location.href = '/login';
+                    }
                     break;
                 case 403:
                     console.error('Access forbidden:', data.message);

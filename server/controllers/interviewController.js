@@ -2,6 +2,9 @@ import Interview from '../models/Interview.js';
 import Resume from '../models/Resume.js';
 import mongoose from 'mongoose';
 import { generateInterviewQuestions, evaluateAnswer, generateInterviewSummary } from './aiController.js';
+import { AccessToken } from 'livekit-server-sdk';
+import { config } from '../config/config.js';
+import User from '../models/User.js';
 
 // Create new interview session
 // POST /api/interviews/create
@@ -452,6 +455,80 @@ export const deleteInterview = async (req, res) => {
 
     } catch (error) {
         console.error('Error in deleteInterview:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
+// Get LiveKit token for room connection
+// POST /api/interviews/:id/token
+export const getLiveKitToken = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.userId;
+
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Missing userId'
+            });
+        }
+
+        const interview = await Interview.findById(id);
+        if (!interview) {
+            return res.status(404).json({
+                success: false,
+                message: 'Interview not found'
+            });
+        }
+
+        const user = await User.findById(userId);
+        const name = user ? user.name : 'Candidate';
+
+        const roomName = `interview_${id}`;
+
+        const apiKey = config.livekit.apiKey;
+        const apiSecret = config.livekit.apiSecret;
+        const serverUrl = config.livekit.serverUrl;
+
+        // Fallback for demo or development if not configured
+        if (!apiKey || !apiSecret || !serverUrl) {
+            return res.status(500).json({
+                success: false,
+                message: 'LiveKit server credentials are not configured in backend .env'
+            });
+        }
+
+        // Create Access Token
+        const at = new AccessToken(apiKey, apiSecret, {
+            identity: userId.toString(),
+            name: name,
+        });
+
+        at.addGrant({
+            roomJoin: true,
+            room: roomName,
+            canPublish: true,
+            canSubscribe: true,
+            canPublishData: true
+        });
+
+        const token = await at.toJwt();
+
+        res.json({
+            success: true,
+            data: {
+                token,
+                roomName,
+                serverUrl
+            }
+        });
+
+    } catch (error) {
+        console.error('Error in getLiveKitToken:', error);
         res.status(500).json({
             success: false,
             message: 'Server error',

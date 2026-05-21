@@ -35,5 +35,12 @@ export const config = {
       dsa: 'Data Structures & Algorithms',
       hr: 'HR Interview'
     }
+  },
+
+  // LiveKit configuration
+  livekit: {
+    serverUrl: process.env.LIVEKIT_URL || 'wss://your-project.livekit.cloud',
+    apiKey: process.env.LIVEKIT_API_KEY || 'your-api-key',
+    apiSecret: process.env.LIVEKIT_API_SECRET || 'your-api-secret',
   }
 };
