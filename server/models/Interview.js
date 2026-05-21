@@ -37,7 +37,7 @@ const interviewSchema = new mongoose.Schema({
         questionText: String,
         questionType: {
             type: String,
-            enum: ['technical', 'behavioral', 'project-based', 'resume-based']
+            enum: ['technical', 'behavioral', 'project-based', 'resume-based', 'problem-solving']
         },
         difficulty: {
             type: String,
