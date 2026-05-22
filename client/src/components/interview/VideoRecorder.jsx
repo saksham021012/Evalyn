@@ -1,5 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import { Video, VideoOff, Mic, MicOff, Settings } from 'lucide-react';
+import { VideoOff } from 'lucide-react';
+import RecorderHUD from './recorder/RecorderHUD';
+import AudioVisualizer from './recorder/AudioVisualizer';
+import RecorderControls from './recorder/RecorderControls';
 
 function VideoRecorder({ isRecording, onRecordingComplete }) {
     const videoRef = useRef(null);
@@ -120,25 +123,12 @@ function VideoRecorder({ isRecording, onRecordingComplete }) {
 
     return (
         <div className="relative bg-slate-900 rounded-xl overflow-hidden border-2 border-blue-500">
-            {/* Signal Quality Badge */}
-            <div className="absolute top-4 left-4 z-10 flex items-center gap-2 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-lg">
-                <div className="flex gap-1">
-                    <div className="w-1 h-3 bg-green-500 rounded"></div>
-                    <div className="w-1 h-3 bg-green-500 rounded"></div>
-                    <div className="w-1 h-3 bg-green-500 rounded"></div>
-                </div>
-                <span className="text-green-400 text-xs font-medium">{signalQuality} SIGNAL</span>
-                <span className="text-gray-400 text-xs">60fps</span>
-            </div>
-
-            {/* Recording Timer */}
-            {isRecording && (
-                <div className="absolute top-4 right-4 z-10 flex items-center gap-2 bg-red-500/90 backdrop-blur-sm px-4 py-2 rounded-lg">
-                    <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
-                    <span className="text-white text-sm font-bold">{formatTime(recordingTime)}</span>
-                    <span className="text-white/80 text-xs">ELAPSED</span>
-                </div>
-            )}
+            <RecorderHUD 
+                signalQuality={signalQuality}
+                isRecording={isRecording}
+                recordingTime={recordingTime}
+                formatTime={formatTime}
+            />
 
             {/* Video Feed */}
             <div className="relative aspect-video bg-black">
@@ -158,52 +148,19 @@ function VideoRecorder({ isRecording, onRecordingComplete }) {
                         </div>
                     </div>
                 )}
-
             </div>
 
-            {/* Audio Visualizer */}
-            {isMicOn && isRecording && (
-                <div className="absolute bottom-20 left-4 right-4 flex items-center justify-center gap-1 h-12 bg-black/40 backdrop-blur-sm rounded-lg px-4">
-                    <div className="w-1 bg-blue-500 rounded-full animate-pulse" style={{ height: '20%' }}></div>
-                    <div className="w-1 bg-blue-500 rounded-full animate-pulse" style={{ height: '40%', animationDelay: '0.1s' }}></div>
-                    <div className="w-1 bg-blue-500 rounded-full animate-pulse" style={{ height: '60%', animationDelay: '0.2s' }}></div>
-                    <div className="w-1 bg-blue-500 rounded-full animate-pulse" style={{ height: '80%', animationDelay: '0.3s' }}></div>
-                    <div className="w-1 bg-blue-500 rounded-full animate-pulse" style={{ height: '60%', animationDelay: '0.4s' }}></div>
-                    <div className="w-1 bg-blue-500 rounded-full animate-pulse" style={{ height: '40%', animationDelay: '0.5s' }}></div>
-                    <div className="w-1 bg-blue-500 rounded-full animate-pulse" style={{ height: '20%', animationDelay: '0.6s' }}></div>
-                </div>
-            )}
+            <AudioVisualizer 
+                isMicOn={isMicOn}
+                isRecording={isRecording}
+            />
 
-            {/* Controls */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-6">
-                <button
-                    onClick={toggleCamera}
-                    className="p-2 transition hover:scale-110 active:scale-95"
-                >
-                    {isCameraOn ? (
-                        <Video className="w-6 h-6 text-white drop-shadow-lg" />
-                    ) : (
-                        <VideoOff className="w-6 h-6 text-red-500 drop-shadow-lg" />
-                    )}
-                </button>
-
-                <button
-                    onClick={toggleMic}
-                    className="p-2 transition hover:scale-110 active:scale-95"
-                >
-                    {isMicOn ? (
-                        <Mic className="w-6 h-6 text-white drop-shadow-lg" />
-                    ) : (
-                        <MicOff className="w-6 h-6 text-red-500 drop-shadow-lg" />
-                    )}
-                </button>
-            </div>
-
-            {/* Max Time Indicator */}
-            <div className="absolute top-4 right-20 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-lg">
-                <span className="text-gray-400 text-xs">05:00</span>
-                <span className="text-gray-600 text-xs ml-1">LEFT</span>
-            </div>
+            <RecorderControls 
+                isCameraOn={isCameraOn}
+                toggleCamera={toggleCamera}
+                isMicOn={isMicOn}
+                toggleMic={toggleMic}
+            />
         </div>
     );
 }
