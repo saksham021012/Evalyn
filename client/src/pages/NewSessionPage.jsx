@@ -99,7 +99,10 @@ function NewSessionPage() {
     };
 
     return (
-        <div className="flex min-h-screen bg-black">
+        <div className="flex min-h-screen bg-[#f5f4f0]" style={{
+            backgroundImage: 'linear-gradient(to right, rgba(28,25,23,0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(28,25,23,0.03) 1px, transparent 1px)',
+            backgroundSize: '32px 32px'
+        }}>
             <Sidebar />
 
             <div className="flex-1 overflow-y-auto">
@@ -111,7 +114,7 @@ function NewSessionPage() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5 }}
-                        className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-2xl p-6 sm:p-8"
+                        className="bg-white border border-[#e7e5e0] rounded-2xl p-6 sm:p-8 shadow-sm"
                     >
                         <ResumeUpload
                             resumeFile={resumeFile}

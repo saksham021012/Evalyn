@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import Sidebar from '../components/layout/Sidebar';
 import UploadResumeModal from '../components/resumes/UploadResumeModal';
-import LoadingSpinner from '../components/common/LoadingSpinner';
+import ResumeSkeleton from '../components/resumes/ResumeSkeleton';
 import ResumeHeader from '../components/resumes/ResumeHeader';
 import ResumeCard from '../components/resumes/ResumeCard';
 import EmptyResumeState from '../components/resumes/EmptyResumeState';
@@ -52,7 +52,10 @@ function ResumesPage() {
     };
 
     return (
-        <div className="flex min-h-screen bg-black">
+        <div className="flex min-h-screen bg-[#f5f4f0]" style={{
+            backgroundImage: 'linear-gradient(to right, rgba(28,25,23,0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(28,25,23,0.03) 1px, transparent 1px)',
+            backgroundSize: '32px 32px'
+        }}>
             <Sidebar />
 
             <div className="flex-1 flex flex-col h-screen overflow-hidden">
@@ -67,7 +70,7 @@ function ResumesPage() {
                         {/* Resume List */}
                         <div className="space-y-4 mb-12">
                             {loading ? (
-                                <LoadingSpinner message="Fetching your inventory" fullScreen={false} />
+                                [1, 2, 3].map(i => <ResumeSkeleton key={i} />)
                             ) : resumes.length > 0 ? (
                                 resumes.map((resume, index) => (
                                     <ResumeCard

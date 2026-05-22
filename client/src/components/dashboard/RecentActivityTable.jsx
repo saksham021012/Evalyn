@@ -7,19 +7,22 @@ function RecentActivityTable({ recentActivity, onDelete, onViewResults }) {
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.5 }}
-            className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl overflow-hidden font-inter"
+            transition={{ duration: 0.3, delay: 0.36 }}
+            className="bg-white border border-[#e7e5e0] rounded-xl overflow-hidden shadow-sm"
         >
-            <div className="p-4 sm:p-6 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div className="flex items-center gap-4">
-                    <h3 className="text-lg sm:text-xl font-semibold text-white tracking-tight">Recent Activity</h3>
-                    <span className="bg-blue-500/10 text-blue-500 text-[10px] font-black tracking-widest px-2 py-0.5 rounded">LATEST SESSIONS</span>
+            {/* Table Header Bar */}
+            <div className="px-5 sm:px-6 py-4 border-b border-[#e7e5e0] bg-[#faf9f6] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="flex items-center gap-3">
+                    <h3 className="text-base font-semibold text-[#1c1917] tracking-tight">Recent Activity</h3>
+                    <span className="bg-[#2b4c3f]/[0.08] text-[#2b4c3f] font-mono text-[9px] font-semibold tracking-[0.2em] uppercase px-2 py-0.5 rounded-md">
+                        Latest Sessions
+                    </span>
                 </div>
                 <button
                     onClick={() => navigate('/interviews')}
-                    className="text-blue-500 hover:text-blue-400 transition text-sm font-bold tracking-tight"
+                    className="text-[#2b4c3f] hover:text-[#2b4c3f]/70 transition text-xs font-mono tracking-widest uppercase font-semibold flex items-center gap-1"
                 >
                     Full History →
                 </button>
@@ -29,85 +32,104 @@ function RecentActivityTable({ recentActivity, onDelete, onViewResults }) {
             <div className="overflow-x-auto">
                 <table className="w-full">
                     <thead>
-                        <tr className="border-b border-slate-800 bg-slate-900/30">
-                            <th className="text-left text-gray-400 text-[10px] font-black tracking-widest px-3 sm:px-6 py-3 sm:py-4 uppercase">Candidate</th>
-                            <th className="text-left text-gray-400 text-[10px] font-black tracking-widest px-3 sm:px-6 py-3 sm:py-4 uppercase hidden sm:table-cell">Date</th>
-                            <th className="text-left text-gray-400 text-[10px] font-black tracking-widest px-3 sm:px-6 py-3 sm:py-4 uppercase hidden md:table-cell">Stack</th>
-                            <th className="text-left text-gray-400 text-[10px] font-black tracking-widest px-3 sm:px-6 py-3 sm:py-4 uppercase">Score</th>
-                            <th className="text-left text-gray-400 text-[10px] font-black tracking-widest px-3 sm:px-6 py-3 sm:py-4 uppercase hidden lg:table-cell">Status</th>
-                            <th className="text-left text-gray-400 text-[10px] font-black tracking-widest px-3 sm:px-6 py-3 sm:py-4 uppercase">Action</th>
+                        <tr className="border-b border-[#e7e5e0]">
+                            {['Candidate', 'Date', 'Stack', 'Score', 'Status', 'Action'].map((col, i) => (
+                                <th
+                                    key={col}
+                                    className={`text-left font-mono text-[9px] tracking-[0.2em] uppercase text-[#a8a29e] px-4 sm:px-6 py-3 font-semibold ${
+                                        i === 1 ? 'hidden sm:table-cell' :
+                                        i === 2 ? 'hidden md:table-cell' :
+                                        i === 4 ? 'hidden lg:table-cell' : ''
+                                    }`}
+                                >
+                                    {col}
+                                </th>
+                            ))}
                         </tr>
                     </thead>
                     <tbody>
                         {recentActivity.map((activity, index) => (
                             <motion.tr
                                 key={activity.id}
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ duration: 0.3, delay: 0.6 + index * 0.1 }}
-                                className="border-b border-slate-800/50 hover:bg-white/[0.02] transition group cursor-pointer"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ duration: 0.2, delay: 0.4 + index * 0.05 }}
+                                className="border-b border-[#f0ede8] last:border-0 hover:bg-[#f5f4f0] transition-colors cursor-pointer group"
                                 onClick={() => onViewResults(activity.id)}
                             >
-                                <td className="px-3 sm:px-6 py-4 sm:py-5">
-                                    <div className="flex items-center gap-2 sm:gap-3">
-                                        <div className="w-7 h-7 sm:w-8 sm:h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
-                                            <span className="text-white text-xs font-black">{activity.avatar}</span>
+                                {/* Candidate */}
+                                <td className="px-4 sm:px-6 py-4">
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="w-8 h-8 bg-[#2b4c3f] rounded-full flex items-center justify-center flex-shrink-0">
+                                            <span className="text-white text-xs font-bold">{activity.avatar}</span>
                                         </div>
-                                        <span className="text-white font-semibold text-xs sm:text-sm tracking-tight">{activity.candidate}</span>
+                                        <span className="text-[#1c1917] font-medium text-sm">{activity.candidate}</span>
                                     </div>
                                 </td>
-                                <td className="px-3 sm:px-6 py-4 sm:py-5 text-gray-400 text-xs sm:text-sm font-medium hidden sm:table-cell">{activity.date}</td>
-                                <td className="px-3 sm:px-6 py-4 sm:py-5 hidden md:table-cell">
-                                    <div className="flex gap-2">
+
+                                {/* Date */}
+                                <td className="px-4 sm:px-6 py-4 text-[#a8a29e] text-xs font-mono hidden sm:table-cell">
+                                    {activity.date}
+                                </td>
+
+                                {/* Stack */}
+                                <td className="px-4 sm:px-6 py-4 hidden md:table-cell">
+                                    <div className="flex gap-1.5 flex-wrap">
                                         {activity.stack.map((tech, i) => (
-                                            <span key={i} className="bg-slate-800 text-gray-300 px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-tight">
+                                            <span
+                                                key={i}
+                                                className="bg-[#eae8e3] text-[#57534e] px-2 py-0.5 rounded font-mono text-[9px] font-semibold uppercase tracking-wide"
+                                            >
                                                 {tech}
                                             </span>
                                         ))}
                                     </div>
                                 </td>
-                                <td className="px-3 sm:px-6 py-4 sm:py-5">
-                                    <div className="flex items-center gap-2 sm:gap-3">
-                                        <div className="flex-1 min-w-[40px] sm:min-w-[60px] max-w-[80px] sm:max-w-[100px] bg-slate-800 rounded-full h-1">
+
+                                {/* Score */}
+                                <td className="px-4 sm:px-6 py-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex-1 min-w-[50px] max-w-[80px] bg-[#e7e5e0] rounded-full h-1.5">
                                             <div
-                                                className="bg-blue-500 h-1 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.5)]"
+                                                className="bg-[#2b4c3f] h-1.5 rounded-full"
                                                 style={{ width: `${activity.score}%` }}
-                                            ></div>
+                                            />
                                         </div>
-                                        <span className="text-white font-bold text-xs sm:text-sm tracking-tighter">{activity.score}/100</span>
+                                        <span className="text-[#1c1917] font-bold text-xs font-mono whitespace-nowrap">
+                                            {activity.score}/100
+                                        </span>
                                     </div>
                                 </td>
-                                <td className="px-3 sm:px-6 py-4 sm:py-5 hidden lg:table-cell">
-                                    <span className={`px-2 py-0.5 rounded text-[10px] font-black tracking-widest uppercase border ${activity.status === 'COMPLETED'
-                                        ? 'bg-green-500/10 text-green-500 border-green-500/20'
-                                        : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
-                                        }`}>
+
+                                {/* Status */}
+                                <td className="px-4 sm:px-6 py-4 hidden lg:table-cell">
+                                    <span className={`px-2.5 py-1 rounded-md font-mono text-[9px] font-bold tracking-[0.15em] uppercase border ${
+                                        activity.status === 'COMPLETED'
+                                            ? 'bg-[#2b4c3f]/[0.08] text-[#2b4c3f] border-[#2b4c3f]/20'
+                                            : 'bg-amber-50 text-amber-700 border-amber-200'
+                                    }`}>
                                         {activity.status}
                                     </span>
                                 </td>
-                                <td className="px-3 sm:px-6 py-4 sm:py-5">
-                                    <div className="flex items-center gap-2 sm:gap-3">
+
+                                {/* Actions */}
+                                <td className="px-4 sm:px-6 py-4">
+                                    <div className="flex items-center gap-2">
                                         <motion.button
-                                            whileHover={{ scale: 1.1 }}
-                                            whileTap={{ scale: 0.9 }}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                onViewResults(activity.id);
-                                            }}
-                                            className="p-1.5 bg-blue-500/10 text-blue-500 rounded-md hover:bg-blue-500 hover:text-white transition-all duration-300"
+                                            whileHover={{ scale: 1.08 }}
+                                            whileTap={{ scale: 0.93 }}
+                                            onClick={(e) => { e.stopPropagation(); onViewResults(activity.id); }}
                                             title="View Results"
+                                            className="p-1.5 bg-[#2b4c3f]/[0.08] text-[#2b4c3f] rounded-lg hover:bg-[#2b4c3f] hover:text-white transition-all duration-200"
                                         >
                                             <BarChart3 className="w-4 h-4" />
                                         </motion.button>
                                         <motion.button
-                                            whileHover={{ scale: 1.1 }}
-                                            whileTap={{ scale: 0.9 }}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                onDelete(activity.id);
-                                            }}
-                                            className="p-1.5 bg-red-500/10 text-red-500 rounded-md hover:bg-red-500 hover:text-white transition-all duration-300"
+                                            whileHover={{ scale: 1.08 }}
+                                            whileTap={{ scale: 0.93 }}
+                                            onClick={(e) => { e.stopPropagation(); onDelete(activity.id); }}
                                             title="Delete Session"
+                                            className="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all duration-200"
                                         >
                                             <Trash2 className="w-4 h-4" />
                                         </motion.button>
@@ -123,4 +145,3 @@ function RecentActivityTable({ recentActivity, onDelete, onViewResults }) {
 }
 
 export default RecentActivityTable;
-

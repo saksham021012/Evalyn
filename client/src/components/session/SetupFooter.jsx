@@ -1,7 +1,7 @@
 function SetupFooter() {
     return (
-        <p className="text-center text-gray-600 text-xs mt-8">
-            YOUR DATA IS PROCESSED SECURELY BY AI • COMPLIANT WITH GLOBAL PRIVACY STANDARDS
+        <p className="text-center font-mono text-[9px] tracking-[0.25em] uppercase text-[#a8a29e] mt-10">
+            EVALYN © 2025 • PROCESSED SECURELY BY AI
         </p>
     );
 }

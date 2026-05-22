@@ -67,7 +67,10 @@ function HistoryPage() {
     );
 
     return (
-        <div className="flex min-h-screen bg-[#050506] font-inter">
+        <div className="flex min-h-screen bg-[#f5f4f0]" style={{
+            backgroundImage: 'linear-gradient(to right, rgba(28,25,23,0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(28,25,23,0.03) 1px, transparent 1px)',
+            backgroundSize: '32px 32px'
+        }}>
             <Sidebar />
 
             {/* Main Content */}

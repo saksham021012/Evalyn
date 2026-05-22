@@ -7,8 +7,8 @@ import StatsCards from '../components/dashboard/StatsCards';
 import ResumeActivityCard from '../components/dashboard/ResumeActivityCard';
 import RecentActivityTable from '../components/dashboard/RecentActivityTable';
 import EmptyDashboardState from '../components/dashboard/EmptyDashboardState';
+import DashboardSkeleton from '../components/dashboard/DashboardSkeleton';
 import { getUserInterviews, deleteInterview } from '../services/operations/interviewAPI';
-import LoadingSpinner from '../components/common/LoadingSpinner';
 import { calculateDashboardStats, formatRecentActivity, getResumeActivityStatus } from '../utils/dashboardUtils';
 
 function DashboardPage() {
@@ -51,34 +51,39 @@ function DashboardPage() {
         }
     };
 
-    if (loading) {
-        return <LoadingSpinner message="Preparing your dashboard" />;
-    }
-
     return (
-        <div className="flex min-h-screen bg-black">
+        <div className="flex min-h-screen bg-[#f5f4f0]" style={{
+            backgroundImage: 'linear-gradient(to right, rgba(28,25,23,0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(28,25,23,0.03) 1px, transparent 1px)',
+            backgroundSize: '32px 32px'
+        }}>
             <Sidebar />
 
-            <div className="flex-1">
+            <div className="flex-1 flex flex-col min-w-0">
                 <DashboardTopBar />
 
-                <div className="p-4 sm:p-6 lg:p-8">
-                    <StatsCards stats={stats} />
-                    <ResumeActivityCard resumeActivity={resumeActivity} />
-                    {recentActivity.length > 0 ? (
-                        <RecentActivityTable
-                            recentActivity={recentActivity}
-                            onDelete={handleDelete}
-                            onViewResults={(id) => navigate(`/interview/results/${id}`)}
-                        />
-                    ) : (
-                        <EmptyDashboardState />
-                    )}
+                {loading ? (
+                    <DashboardSkeleton />
+                ) : (
+                    <div className="flex-1 p-4 sm:p-6 lg:p-8">
+                        <StatsCards stats={stats} />
+                        <ResumeActivityCard resumeActivity={resumeActivity} />
+                        {recentActivity.length > 0 ? (
+                            <RecentActivityTable
+                                recentActivity={recentActivity}
+                                onDelete={handleDelete}
+                                onViewResults={(id) => navigate(`/interview/results/${id}`)}
+                            />
+                        ) : (
+                            <EmptyDashboardState />
+                        )}
 
-                    <div className="text-center mt-8">
-                        <p className="text-gray-500 text-xs sm:text-sm">EVALYN © 2025 • PROFESSIONAL EDITION</p>
+                        <div className="text-center mt-10 pb-2">
+                            <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-[#a8a29e]">
+                                EVALYN © 2025 • PROFESSIONAL EDITION
+                            </p>
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
         </div>
     );

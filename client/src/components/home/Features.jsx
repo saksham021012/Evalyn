@@ -1,95 +1,79 @@
-import { MessageSquare, Video, FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 function Features() {
-    const features = [
+    const capabilities = [
         {
-            icon: <MessageSquare className="w-8 h-8 text-blue-500" />,
-            title: "AI-Powered Resume Analysis",
-            description: "Upload your resume and get instant AI analysis with skill categorization, experience evaluation, and personalized interview difficulty suggestions."
+            num: "01",
+            area: "PREPARATION",
+            title: "Tailored Question Matching",
+            description: "Evalyn analyzes your resume to understand your unique background. It then designs a custom interview track that directly targets the technologies and projects you have actually worked on."
         },
         {
-            icon: <Video className="w-8 h-8 text-blue-500" />,
-            title: "Real-time Video Interviews",
-            description: "Practice with AI-generated questions tailored to your resume. Record video responses with speech-to-text transcription for comprehensive feedback."
+            num: "02",
+            area: "PRACTICE",
+            title: "Real-Time Speaking Insights",
+            description: "Practice speaking naturally in a realistic interface. Evalyn listens to your responses, instantly transcribing your answers and measuring your speaking speed, pauses, and overall clarity."
         },
         {
-            icon: <FileText className="w-8 h-8 text-blue-500" />,
-            title: "Detailed AI Feedback",
-            description: "Receive instant evaluation on every answer with scores, strengths, weaknesses, and actionable suggestions to improve your performance."
+            num: "03",
+            area: "EVALUATION",
+            title: "Actionable Review Reports",
+            description: "Receive an instant, easy-to-read summary of your performance. Evalyn highlights your strengths, points out areas for improvement, and gives you step-by-step suggestions to perfect your answers."
         }
     ];
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.2
-            }
-        }
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 30 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: {
-                duration: 0.5
-            }
-        }
-    };
 
     return (
-        <section id="learn-more" className="py-20 px-6 bg-slate-900/50">
+        <section id="learn-more" className="py-32 px-6 bg-transparent border-t border-zinc-200 relative">
             <div className="max-w-7xl mx-auto">
+                
                 {/* Section Header */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5 }}
-                    className="text-center mb-16"
-                >
-                    <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                        Engineered for excellence
+                <div className="mb-24">
+                    <div className="inline-flex items-center gap-2 mb-4">
+                        <span className="w-1.5 h-1.5 bg-[#2b4c3f] rounded-full"></span>
+                        <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-500">
+                            Core capabilities
+                        </span>
+                    </div>
+                    <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-[#1c1917] mb-6 font-serif">
+                        Systematic evaluation. No guesswork.
                     </h2>
-                    <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-                        Our platform is designed to help you succeed with cutting-edge AI technology and proven interview strategies.
+                    <p className="text-zinc-600 text-sm max-w-xl leading-relaxed">
+                        Evalyn executes granular diagnostic audits on candidate responses, evaluating both raw technical correctness and verbal communication structure.
                     </p>
-                </motion.div>
+                </div>
 
-                {/* Feature Cards */}
-                <motion.div
-                    variants={containerVariants}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true }}
-                    className="grid md:grid-cols-3 gap-8"
-                >
-                    {features.map((feature, index) => (
-                        <motion.div
+                {/* Capabilities Grid with single-sided borders */}
+                <div className="grid md:grid-cols-3 border-t border-l border-zinc-200">
+                    {capabilities.map((item, index) => (
+                        <div 
                             key={index}
-                            variants={itemVariants}
-                            whileHover={{ y: -10, transition: { duration: 0.2 } }}
-                            className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-8 hover:border-blue-500/50 transition-colors cursor-pointer"
+                            className="border-r border-b border-zinc-200 p-8 md:p-10 bg-white/40 hover:bg-white/90 shadow-sm transition-colors duration-300 flex flex-col justify-between min-h-[300px]"
                         >
-                            <motion.div
-                                whileHover={{ scale: 1.1, rotate: 5 }}
-                                transition={{ duration: 0.2 }}
-                                className="mb-4"
-                            >
-                                {feature.icon}
-                            </motion.div>
-                            <h3 className="text-xl font-semibold text-white mb-3">
-                                {feature.title}
-                            </h3>
-                            <p className="text-gray-400 leading-relaxed">
-                                {feature.description}
-                            </p>
-                        </motion.div>
+                            <div>
+                                <div className="flex items-center justify-between mb-8 font-mono">
+                                    <span className="text-xs text-[#2b4c3f] font-semibold tracking-widest">
+                                        {item.num}
+                                    </span>
+                                    <span className="text-[10px] text-zinc-400 uppercase tracking-widest">
+                                        // {item.area}
+                                    </span>
+                                </div>
+                                <h3 className="text-lg font-bold text-[#1c1917] mb-4 tracking-tight font-serif">
+                                    {item.title}
+                                </h3>
+                                <p className="text-zinc-600 text-xs md:text-sm leading-relaxed">
+                                    {item.description}
+                                </p>
+                            </div>
+                            <div className="mt-8 pt-4 border-t border-zinc-200/40 flex justify-end font-mono">
+                                <span className="text-[9px] text-zinc-400 uppercase tracking-wider">
+                                    Status: Active
+                                </span>
+                            </div>
+                        </div>
                     ))}
-                </motion.div>
+                </div>
+
             </div>
         </section>
     );

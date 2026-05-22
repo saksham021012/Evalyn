@@ -100,6 +100,7 @@ export const getResumeActivityStatus = (interviews, user) => {
         role: mostRecent?.role || 'Fullstack Developer',
         status: inProgress ? 'in-progress' : 'idle',
         phase: inProgress ? 'middle of an active session' : 'ready for a new session',
-        lastUpload: 'Synced'
+        lastUpload: 'Synced',
+        sessionId: inProgress?._id || null
     };
 };

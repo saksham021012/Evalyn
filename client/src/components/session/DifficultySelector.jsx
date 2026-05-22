@@ -1,33 +1,33 @@
 function DifficultySelector({ difficulty, setDifficulty }) {
     return (
         <div className="mb-8">
-            <label className="block text-gray-400 text-xs font-medium mb-3">
+            <label className="block font-mono text-[10px] tracking-[0.25em] uppercase text-[#a8a29e] mb-3 font-semibold">
                 INTERVIEW DEPTH
             </label>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-3">
                 <button
                     onClick={() => setDifficulty('easy')}
-                    className={`py-3 rounded-lg font-medium transition ${difficulty === 'easy'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
+                    className={`py-3 rounded-xl font-mono text-[10px] tracking-[0.2em] font-bold uppercase transition border ${difficulty === 'easy'
+                        ? 'bg-[#2b4c3f] text-white border-[#2b4c3f] shadow-sm'
+                        : 'bg-white text-[#57534e] border-[#e7e5e0] hover:bg-[#f5f4f0]'
                         }`}
                 >
                     EASY
                 </button>
                 <button
                     onClick={() => setDifficulty('medium')}
-                    className={`py-3 rounded-lg font-medium transition ${difficulty === 'medium'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
+                    className={`py-3 rounded-xl font-mono text-[10px] tracking-[0.2em] font-bold uppercase transition border ${difficulty === 'medium'
+                        ? 'bg-[#2b4c3f] text-white border-[#2b4c3f] shadow-sm'
+                        : 'bg-white text-[#57534e] border-[#e7e5e0] hover:bg-[#f5f4f0]'
                         }`}
                 >
                     MEDIUM
                 </button>
                 <button
                     onClick={() => setDifficulty('hard')}
-                    className={`py-3 rounded-lg font-medium transition ${difficulty === 'hard'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
+                    className={`py-3 rounded-xl font-mono text-[10px] tracking-[0.2em] font-bold uppercase transition border ${difficulty === 'hard'
+                        ? 'bg-[#2b4c3f] text-white border-[#2b4c3f] shadow-sm'
+                        : 'bg-white text-[#57534e] border-[#e7e5e0] hover:bg-[#f5f4f0]'
                         }`}
                 >
                     HARD

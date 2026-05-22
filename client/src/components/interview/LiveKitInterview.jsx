@@ -6,7 +6,7 @@ import {
     useTracks,
     RoomAudioRenderer
 } from '@livekit/components-react';
-import { Track } from 'livekit-client';
+import { Track, RoomEvent } from 'livekit-client';
 import AgentCard from './livekit/AgentCard';
 import CandidateFeed from './livekit/CandidateFeed';
 import TranscriptionPanel from './livekit/TranscriptionPanel';
@@ -33,48 +33,53 @@ function LiveKitInterview({ sessionId, onEndSession }) {
 
     // Live transcript state
     const [messages, setMessages] = useState([]);
-    const transcriptEndRef = useRef(null);
+    const transcriptContainerRef = useRef(null);
 
-    // Auto-scroll transcripts
+    // Auto-scroll transcripts without hijacking the main page scroll
     useEffect(() => {
-        transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        if (transcriptContainerRef.current) {
+            transcriptContainerRef.current.scrollTop = transcriptContainerRef.current.scrollHeight;
+        }
     }, [messages]);
 
-    // Capture real-time transcriptions using LiveKit text stream handler
+    // Capture real-time transcriptions using native RoomEvent
     useEffect(() => {
         if (!room) return;
 
-        const handleTextStream = async (reader, participantInfo) => {
-            try {
-                const isTranscription = reader.info.attributes['lk.transcribed_track_id'] !== undefined;
-                if (!isTranscription) return;
+        const handleTranscription = (segments, participant) => {
+            const identity = participant?.identity;
+            const isLocal = identity && room.localParticipant && identity === room.localParticipant.identity;
+            const speakerName = isLocal ? 'You' : 'Interviewer';
 
-                const identity = participantInfo?.identity;
-                const isLocal = identity && room.localParticipant && identity === room.localParticipant.identity;
-                const speakerName = isLocal ? 'You' : 'Interviewer';
+            setMessages(prev => {
+                let newMessages = [...prev];
                 
-                // readAll resolves when the stream is complete for this segment
-                const text = await reader.readAll();
-                if (text && text.trim()) {
-                    setMessages(prev => {
-                        // Avoid exact duplicate consecutive messages
-                        if (prev.length > 0 && prev[prev.length - 1].text === text.trim() && prev[prev.length - 1].sender === speakerName) {
-                            return prev;
+                for (const segment of segments) {
+                    const existingIdx = newMessages.findIndex(m => m.id === segment.id);
+                    if (existingIdx >= 0) {
+                        // Update existing segment text
+                        newMessages[existingIdx] = {
+                            ...newMessages[existingIdx],
+                            text: segment.text
+                        };
+                    } else {
+                        // Create a new message block for this segment
+                        if (segment.text.trim().length > 0) {
+                            newMessages.push({
+                                id: segment.id,
+                                sender: speakerName,
+                                text: segment.text,
+                                timestamp: new Date()
+                            });
                         }
-                        return [...prev, {
-                            id: Math.random().toString(),
-                            sender: speakerName,
-                            text: text.trim(),
-                            timestamp: new Date()
-                        }];
-                    });
+                    }
                 }
-            } catch (err) {
-                console.error('[LiveKitInterview] Error reading transcription stream:', err);
-            }
+                
+                return newMessages;
+            });
         };
 
-        room.registerTextStreamHandler('lk.transcription', handleTextStream);
+        room.on(RoomEvent.TranscriptionReceived, handleTranscription);
 
         // Send a greeting reminder text to log just in case
         setMessages([
@@ -87,11 +92,7 @@ function LiveKitInterview({ sessionId, onEndSession }) {
         ]);
 
         return () => {
-            try {
-                room.unregisterTextStreamHandler('lk.transcription');
-            } catch (err) {
-                console.error('[LiveKitInterview] Error unregistering text stream handler:', err);
-            }
+            room.off(RoomEvent.TranscriptionReceived, handleTranscription);
         };
     }, [room]);
 
@@ -138,7 +139,7 @@ function LiveKitInterview({ sessionId, onEndSession }) {
             {/* Right Column: Live Transcription panel (5 cols) */}
             <TranscriptionPanel 
                 messages={messages} 
-                transcriptEndRef={transcriptEndRef} 
+                transcriptContainerRef={transcriptContainerRef} 
             />
         </div>
     );

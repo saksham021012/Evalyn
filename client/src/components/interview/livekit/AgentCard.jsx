@@ -3,78 +3,65 @@ import { BarVisualizer } from '@livekit/components-react';
 
 function AgentCard({ agentState, isAgentSpeaking, agentAudioTrackRef }) {
     // Determine Agent UI Styles and Status
-    let ringColorClass = 'ring-slate-800 shadow-[0_0_15px_rgba(30,41,59,0.2)]';
+    let ringColorClass = 'ring-[#e7e5e0] shadow-sm';
     let statusText = 'Ready';
-    let statusBadgeColor = 'bg-slate-700 text-slate-300';
-    let ringPulseClass = '';
+    let statusBadgeColor = 'bg-[#f5f4f0] text-[#57534e] border border-[#e7e5e0]';
 
     if (agentState === 'speaking' || isAgentSpeaking) {
-        ringColorClass = 'ring-purple-500 shadow-[0_0_35px_rgba(168,85,247,0.6)] border-purple-400';
+        ringColorClass = 'ring-[#2b4c3f]/20 border-[#2b4c3f] shadow-md';
         statusText = 'AI is speaking';
-        statusBadgeColor = 'bg-purple-900/60 text-purple-300 border border-purple-700/50';
-        ringPulseClass = 'animate-pulse';
+        statusBadgeColor = 'bg-[#2b4c3f]/10 text-[#2b4c3f] border border-[#2b4c3f]/20';
     } else if (agentState === 'thinking') {
-        ringColorClass = 'ring-amber-500 shadow-[0_0_35px_rgba(245,158,11,0.5)] border-amber-400';
+        ringColorClass = 'ring-[#d4d0c9] border-[#a8a29e] shadow-sm';
         statusText = 'AI is thinking...';
-        statusBadgeColor = 'bg-amber-950/60 text-amber-300 border border-amber-700/50';
-        ringPulseClass = 'animate-pulse';
+        statusBadgeColor = 'bg-white text-[#1c1917] border border-[#d4d0c9]';
     } else if (agentState === 'listening') {
-        ringColorClass = 'ring-emerald-500 shadow-[0_0_35px_rgba(16,185,129,0.5)] border-emerald-400';
+        ringColorClass = 'ring-[#e7e5e0] border-[#2b4c3f]/50 shadow-sm';
         statusText = 'Listening to you...';
-        statusBadgeColor = 'bg-emerald-950/60 text-emerald-300 border border-emerald-700/50';
+        statusBadgeColor = 'bg-[#2b4c3f]/5 text-[#2b4c3f] border border-[#2b4c3f]/10';
     }
 
     return (
-        <div className="relative bg-slate-900/80 border border-slate-800 rounded-2xl p-8 flex flex-col items-center justify-center min-h-[300px] backdrop-blur-sm shadow-xl overflow-hidden">
-            {/* Glowing Grid Background Effect */}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-30"></div>
-            
+        <div className="relative bg-white border border-[#e7e5e0] rounded-2xl p-8 flex flex-col items-center justify-center min-h-[300px] shadow-sm overflow-hidden">
             {/* Status Badge */}
             <div className="absolute top-4 left-4 z-10">
-                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${statusBadgeColor} transition-all duration-300`}>
-                    <span className="w-1.5 h-1.5 bg-current rounded-full animate-ping"></span>
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-mono text-[9px] font-bold uppercase tracking-[0.2em] transition-all duration-300 ${statusBadgeColor}`}>
+                    <span className="w-1.5 h-1.5 bg-current rounded-full animate-pulse"></span>
                     {statusText}
                 </span>
             </div>
 
-            {/* Agent Avatar with glowing pulsing rings */}
+            {/* Agent Avatar with minimal rings */}
             <div className="relative z-10 mb-6 mt-4">
-                {/* Glowing ring underlay */}
-                {(agentState === 'speaking' || isAgentSpeaking || agentState === 'thinking') && (
-                    <div className={`absolute -inset-4 rounded-full blur-xl opacity-40 transition-all duration-500 bg-gradient-to-r ${
-                        agentState === 'thinking' ? 'from-amber-500 to-yellow-300' : 'from-purple-600 to-indigo-500'
-                    } ${ringPulseClass}`}></div>
-                )}
-                
                 {/* Outer rotating ring for thinking */}
                 {agentState === 'thinking' && (
-                    <div className="absolute -inset-2 rounded-full border-2 border-dashed border-amber-400/60 animate-spin" style={{ animationDuration: '6s' }}></div>
+                    <div className="absolute -inset-3 rounded-full border-2 border-dashed border-[#a8a29e] animate-spin" style={{ animationDuration: '6s' }}></div>
                 )}
 
                 {/* Main Avatar Container */}
-                <div className={`relative w-32 h-32 rounded-full bg-slate-950 flex items-center justify-center border-2 border-slate-700 ring-4 transition-all duration-300 ${ringColorClass}`}>
+                <div className={`relative w-28 h-28 rounded-full bg-[#faf9f6] flex items-center justify-center border-2 border-[#e7e5e0] ring-4 transition-all duration-500 ${ringColorClass}`}>
                     {agentState === 'speaking' || isAgentSpeaking ? (
-                        <Cpu className="w-16 h-16 text-purple-400 animate-pulse" />
+                        <Cpu className="w-12 h-12 text-[#2b4c3f] animate-pulse" />
                     ) : agentState === 'thinking' ? (
-                        <Cpu className="w-16 h-16 text-amber-400" />
+                        <Cpu className="w-12 h-12 text-[#57534e]" />
                     ) : (
-                        <Cpu className="w-16 h-16 text-slate-500" />
+                        <Cpu className="w-12 h-12 text-[#a8a29e]" />
                     )}
                 </div>
             </div>
 
             {/* Agent name */}
-            <h3 className="relative z-10 text-lg font-bold text-white tracking-wide">AI TECHNICAL INTERVIEWER</h3>
-            <p className="relative z-10 text-xs text-slate-500 mt-1 uppercase tracking-widest font-mono">Livekit Agent Worker v1.0</p>
+            <h3 className="relative z-10 text-lg font-bold font-serif text-[#1c1917] tracking-tight">AI TECHNICAL INTERVIEWER</h3>
+            <p className="relative z-10 text-[10px] text-[#a8a29e] mt-1 uppercase tracking-[0.2em] font-mono font-semibold">Livekit Agent Worker v1.0</p>
 
             {/* Bar Visualizer */}
             {agentAudioTrackRef && (
-                <div className="relative z-10 mt-6 w-full max-w-xs flex justify-center h-8">
+                <div className="relative z-10 mt-8 w-full max-w-xs flex justify-center h-8 opacity-70">
                     <BarVisualizer 
                         trackRef={agentAudioTrackRef} 
                         state={agentState} 
                         barCount={15} 
-                        className="flex gap-1 items-end w-full h-full"
+                        className="flex gap-1 items-end w-full h-full text-[#2b4c3f]"
                     />
                 </div>
             )}

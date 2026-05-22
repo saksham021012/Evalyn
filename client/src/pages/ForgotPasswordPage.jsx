@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
+import { Code2 } from 'lucide-react';
 import { sendForgotOtp, resetPassword } from '../services/operations/authAPI';
 import EmailStep from '../components/auth/ForgotPassword/EmailStep';
 import OtpStep from '../components/auth/ForgotPassword/OtpStep';
@@ -41,14 +42,32 @@ function ForgotPasswordPage() {
         dispatch(resetPassword(email, otp, newPassword, navigate));
     };
 
+    const stepLabels = {
+        1: 'Account Recovery',
+        2: 'Verify Identity',
+        3: 'New Password',
+    };
+
+    const stepTitles = {
+        1: 'Reset your password',
+        2: "Verify it's you",
+        3: 'Set new password',
+    };
+
+    const stepSubtitles = {
+        1: "Enter your email and we'll send you a recovery code.",
+        2: `We sent a code to ${email}`,
+        3: 'Secure your account with a new password.',
+    };
+
     return (
-        <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 sm:py-12 font-inter">
+        <div className="min-h-screen bg-grid-pattern flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
             {/* Logo */}
-            <Link to="/" className="absolute top-4 sm:top-6 left-4 sm:left-6 flex items-center gap-2 text-white font-bold text-lg sm:text-xl">
-                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                    <span className="text-white font-bold text-xs sm:text-sm">EV</span>
+            <Link to="/" className="absolute top-5 left-6 flex items-center gap-2.5 text-[#1c1917] font-bold text-xl font-serif">
+                <div className="bg-[#2b4c3f] p-1.5 rounded-lg flex items-center justify-center text-white">
+                    <Code2 className="w-4 h-4" />
                 </div>
-                <span className="hidden sm:inline">Evalyn</span>
+                <span className="tracking-tight hidden sm:inline">Evalyn</span>
             </Link>
 
             <motion.div
@@ -58,22 +77,38 @@ function ForgotPasswordPage() {
                 className="w-full max-w-md mt-12 sm:mt-0"
             >
                 {/* Header */}
-                <div className="text-center mb-6 sm:mb-8">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
-                        {step === 1 && 'Reset your password'}
-                        {step === 2 && 'Verify it\'s you'}
-                        {step === 3 && 'Set new password'}
+                <div className="text-center mb-8">
+                    {/* Step progress dots */}
+                    <div className="flex items-center justify-center gap-1.5 mb-4">
+                        {[1, 2, 3].map((s) => (
+                            <span
+                                key={s}
+                                className={`rounded-full transition-all duration-300 ${
+                                    s === step
+                                        ? 'w-4 h-1.5 bg-[#2b4c3f]'
+                                        : s < step
+                                        ? 'w-1.5 h-1.5 bg-[#2b4c3f]/50'
+                                        : 'w-1.5 h-1.5 bg-zinc-300'
+                                }`}
+                            />
+                        ))}
+                    </div>
+                    <div className="inline-flex items-center gap-2 mb-3">
+                        <span className="w-1.5 h-1.5 bg-[#2b4c3f] rounded-full"></span>
+                        <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-500">
+                            {stepLabels[step]}
+                        </span>
+                    </div>
+                    <h1 className="text-3xl font-extrabold text-[#1c1917] mb-2 font-serif tracking-tight">
+                        {stepTitles[step]}
                     </h1>
-                    <p className="text-sm sm:text-base text-gray-400">
-                        {step === 1 && 'Enter your email and we\'ll send you a recovery code.'}
-                        {step === 2 && `We sent a code to ${email}`}
-                        {step === 3 && 'Secure your account with a new password.'}
+                    <p className="text-sm text-zinc-500 font-sans">
+                        {stepSubtitles[step]}
                     </p>
                 </div>
 
                 {/* Card */}
-                <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl">
-
+                <div className="bg-white/90 backdrop-blur-md border border-zinc-200 shadow-sm rounded-xl p-6 sm:p-8">
                     {/* Step 1: Email */}
                     {step === 1 && (
                         <EmailStep
@@ -105,7 +140,6 @@ function ForgotPasswordPage() {
                             onSubmit={handleResetPassword}
                         />
                     )}
-
                 </div>
             </motion.div>
         </div>

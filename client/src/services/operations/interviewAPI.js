@@ -24,7 +24,12 @@ export function startInterview(data, navigate) {
             dispatch(setInterviewSession(response.data));
 
             if (navigate) {
-                navigate('/interview');
+                const sessionId = response.data?.interview?._id || response.data?._id;
+                if (sessionId) {
+                    navigate(`/interview?sessionId=${sessionId}`);
+                } else {
+                    navigate('/interview');
+                }
             }
 
             return response.data;
@@ -187,10 +192,13 @@ export function skipQuestion(sessionId, questionNumber) {
     };
 }
 
-export function getInterviewSession(sessionId) {
+export function getInterviewSession(sessionId, showToastsAndLoader = true) {
     return async (dispatch) => {
-        const toastId = toast.loading('Loading Session...');
-        dispatch(setLoading(true));
+        let toastId = null;
+        if (showToastsAndLoader) {
+            toastId = toast.loading('Loading Session...');
+            dispatch(setLoading(true));
+        }
         try {
             const interviewBaseUrl = START_INTERVIEW_API.replace('/create', '');
             // Backend: GET /:id
@@ -203,14 +211,20 @@ export function getInterviewSession(sessionId) {
             }
 
             dispatch(setInterviewSession(response.data));
-            toast.success('Session Loaded', { id: toastId });
+            if (showToastsAndLoader && toastId) {
+                toast.success('Session Loaded', { id: toastId });
+            }
             return response.data;
         } catch (error) {
             console.log('GET SESSION API ERROR............', error);
-            toast.error(error.message || 'Failed to Get Session', { id: toastId });
+            if (showToastsAndLoader) {
+                toast.error(error.message || 'Failed to Get Session', { id: toastId });
+            }
             throw error;
         } finally {
-            dispatch(setLoading(false));
+            if (showToastsAndLoader) {
+                dispatch(setLoading(false));
+            }
         }
     };
 }

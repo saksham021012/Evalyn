@@ -349,13 +349,13 @@ Consider:
 // Generate overall interview summary and feedback
 export const generateInterviewSummary = async (interview, resumeData) => {
   try {
-    const answeredQuestions = interview.questions.filter(q => q.evaluation);
-    const averageScore = interview.stats.averageScore;
+    const answeredQuestions = (interview.questions || []).filter(q => q.evaluation);
+    const averageScore = interview.stats?.averageScore || 0;
 
     const questionSummary = answeredQuestions.map(q => ({
       question: q.questionText,
-      score: q.evaluation.score,
-      skills: q.relatedSkills
+      score: q.evaluation?.score || 0,
+      skills: q.relatedSkills || []
     }));
 
     const prompt = `
@@ -366,14 +366,14 @@ Interview Details:
 - Difficulty: ${interview.difficulty}
 - Average Score: ${averageScore}/10
 - Questions Answered: ${answeredQuestions.length}
-- Questions Skipped: ${interview.stats.questionsSkipped}
+- Questions Skipped: ${interview.stats?.questionsSkipped || 0}
 
 Question Performance:
 ${JSON.stringify(questionSummary, null, 2)}
 
 Candidate's Resume:
-- Experience Level: ${resumeData.experienceLevel}
-- Skills Claimed: ${resumeData.skills.map(s => s.name).join(', ')}
+- Experience Level: ${resumeData?.experienceLevel || 'fresher'}
+- Skills Claimed: ${(resumeData?.skills || []).map(s => s.name).join(', ')}
 
 Generate comprehensive feedback and return ONLY a valid JSON object (no markdown):
 {

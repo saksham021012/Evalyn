@@ -368,7 +368,12 @@ export const completeInterview = async (req, res) => {
         }
 
         // Generate overall summary
-        const summaryResult = await generateInterviewSummary(interview, interview.resume.parsedData);
+        let summaryResult = { success: false };
+        try {
+            summaryResult = await generateInterviewSummary(interview, interview.resume?.parsedData);
+        } catch (summaryErr) {
+            console.error('Failed to generate summary during manual complete:', summaryErr);
+        }
 
         if (summaryResult.success) {
             interview.overallEvaluation = summaryResult.summary;

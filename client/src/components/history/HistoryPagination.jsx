@@ -1,31 +1,30 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 function HistoryPagination({ currentPage, totalPages, onPageChange, totalItems, itemsPerPage }) {
-    // If no pages or just 1 page, we could hide it or just show basic info
     if (totalItems === 0) return null;
 
     return (
-        <div className="mt-12 flex items-center justify-between">
-            <p className="text-[#3a3a3b] text-sm font-bold tracking-tight">
-                Showing <span className="text-[#8a8a8b]">{totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}</span> to <span className="text-[#8a8a8b]">{Math.min(currentPage * itemsPerPage, totalItems)}</span> of <span className="text-[#8a8a8b]">{totalItems}</span> sessions
+        <div className="mt-8 flex items-center justify-between">
+            <p className="text-[#57534e] font-mono text-[10px] tracking-widest uppercase">
+                Showing <span className="font-bold text-[#1c1917]">{totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}</span> to <span className="font-bold text-[#1c1917]">{Math.min(currentPage * itemsPerPage, totalItems)}</span> of <span className="font-bold text-[#1c1917]">{totalItems}</span>
             </p>
 
             <div className="flex items-center gap-2">
                 <button
                     onClick={() => onPageChange(Math.max(1, currentPage - 1))}
                     disabled={currentPage === 1}
-                    className="p-2 rounded-lg bg-[#0f0f10] border border-[#1a1a1b] text-[#6a6a6b] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                    className="p-1.5 rounded-lg bg-white border border-[#e7e5e0] text-[#57534e] hover:bg-[#f5f4f0] disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
                 >
-                    <ChevronLeft className="w-5 h-5" />
+                    <ChevronLeft className="w-4 h-4" />
                 </button>
 
                 {[...Array(totalPages)].map((_, i) => (
                     <button
                         key={i}
                         onClick={() => onPageChange(i + 1)}
-                        className={`w-10 h-10 rounded-lg font-bold text-sm transition-all shadow-lg ${currentPage === i + 1
-                            ? 'bg-blue-600 text-white shadow-blue-500/20'
-                            : 'bg-[#0f0f10] border border-[#1a1a1b] text-[#6a6a6b] hover:text-white'
+                        className={`w-8 h-8 rounded-lg font-mono text-[10px] font-bold transition-all shadow-sm ${currentPage === i + 1
+                            ? 'bg-[#2b4c3f] text-white border border-[#2b4c3f]'
+                            : 'bg-white border border-[#e7e5e0] text-[#57534e] hover:bg-[#f5f4f0]'
                             }`}
                     >
                         {i + 1}
@@ -35,9 +34,9 @@ function HistoryPagination({ currentPage, totalPages, onPageChange, totalItems, 
                 <button
                     onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
                     disabled={currentPage === totalPages}
-                    className="p-2 rounded-lg bg-[#0f0f10] border border-[#1a1a1b] text-[#6a6a6b] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                    className="p-1.5 rounded-lg bg-white border border-[#e7e5e0] text-[#57534e] hover:bg-[#f5f4f0] disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
                 >
-                    <ChevronRight className="w-5 h-5" />
+                    <ChevronRight className="w-4 h-4" />
                 </button>
             </div>
         </div>

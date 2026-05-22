@@ -1,130 +1,74 @@
 import { Link } from 'react-router-dom';
-import { Play } from 'lucide-react';
-import { motion } from 'framer-motion';
+import LiveSimulator from './LiveSimulator';
 
 function Hero() {
     return (
-        <section className="pt-32 pb-20 px-6">
-            <div className="max-w-7xl mx-auto">
-                {/* Tagline */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                    className="text-center mb-6"
-                >
-                    <span className="text-blue-400 text-sm font-medium tracking-wider uppercase">
-                        AI-DRIVEN INTERVIEW PLATFORM
-                    </span>
-                </motion.div>
+        <section className="pt-36 pb-24 px-6 bg-transparent text-[#1c1917] overflow-hidden">
+            <div className="max-w-7xl mx-auto grid lg:grid-cols-12 gap-16 items-center">
+                
+                {/* Left Side: Editorial Typography & Minimal Copy */}
+                <div className="lg:col-span-5 flex flex-col justify-center">
+                    <div className="inline-flex items-center gap-2 mb-6 font-mono text-[10px] tracking-[0.2em] uppercase text-zinc-500">
+                        <span className="w-1.5 h-1.5 bg-[#2b4c3f] rounded-full"></span>
+                        <span>SYSTEM VERSION 2.4.0</span>
+                    </div>
 
-                {/* Main Heading */}
-                <motion.h1
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.1 }}
-                    className="text-center text-6xl md:text-7xl font-bold text-white mb-6 leading-tight"
-                >
-                    Master the technical
-                    <br />
-                    interview with AI.
-                </motion.h1>
+                    <h1 className="text-[44px] sm:text-[52px] lg:text-[60px] font-extrabold tracking-tight leading-[1.08] mb-8 font-serif text-[#1c1917]">
+                        Technical<br />
+                        interview<br />
+                        prep<br />
+                        that <span className="text-[#2b4c3f] italic font-serif font-normal">actually</span><br />
+                        prepares<br />
+                        you.
+                    </h1>
 
-                {/* Subtext */}
-                <motion.p
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
-                    className="text-center text-gray-400 text-lg mb-10 max-w-2xl mx-auto"
-                >
-                    Evalyn is an AI-powered mock interview platform that evaluates interview responses through transcripts and delivers actionable feedback on communication and technical depth.
-                </motion.p>
+                    <p className="text-zinc-600 text-[14px] sm:text-[15px] leading-relaxed mb-10 max-w-[400px] font-sans">
+                        Practice system design, coding, and behavioral interviews in a realistic simulator. Get instant feedback on correctness, clarity, and depth.
+                    </p>
 
-                {/* CTA Buttons */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.3 }}
-                    className="flex items-center justify-center gap-4 mb-16"
-                >
-                    <Link to="/signup">
-                        <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium transition flex items-center gap-2"
-                        >
-                            Get Started for free
-                        </motion.button>
-                    </Link>
-                </motion.div>
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+                        <Link to="/signup" className="flex justify-center items-center bg-white hover:bg-zinc-50 text-zinc-800 border border-zinc-200 shadow-sm px-8 py-3.5 text-xs font-mono tracking-widest uppercase font-bold transition-all duration-200 rounded-xl">
+                            Get Started Free
+                        </Link>
+                        <a href="#learn-more" className="flex justify-center items-center bg-white hover:bg-zinc-50 text-zinc-800 border border-zinc-200 shadow-sm px-8 py-3.5 text-xs font-mono tracking-widest uppercase font-bold transition-all duration-200 rounded-xl">
+                            View Capabilities
+                        </a>
+                    </div>
 
-                {/* Code Preview Section */}
-                <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-                    {/* Code Editor Preview */}
-                    <motion.div
-                        initial={{ opacity: 0, x: -50 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.6, delay: 0.4 }}
-                        className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 font-mono text-sm hover:border-blue-500/50 transition-colors"
-                    >
-                        <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-700">
-                            <div className="flex gap-1.5">
-                                <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                                <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                            </div>
-                            <span className="text-gray-400 text-xs ml-2">solution.js</span>
-                        </div>
-                        <pre className="text-gray-300">
-                            <code>
-                                {`function twoSum(nums, target) {
-  const map = new Map();
-  for (let i = 0; i < nums.length; i++) {
-    const complement = target - nums[i];
-    if (map.has(complement)) {
-      return [map.get(complement), i];
-    }
-    map.set(nums[i], i);
-  }
-}`}
-                            </code>
-                        </pre>
-                    </motion.div>
-
-                    {/* AI Chat Preview */}
-                    <motion.div
-                        initial={{ opacity: 0, x: 50 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.6, delay: 0.4 }}
-                        className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 hover:border-blue-500/50 transition-colors"
-                    >
-                        <div className="mb-4 pb-3 border-b border-slate-700">
-                            <span className="text-gray-400 text-sm">AI Feedback</span>
-                        </div>
-                        <div className="space-y-4">
-                            <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.4, delay: 0.6 }}
-                                className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4"
-                            >
-                                <p className="text-blue-300 text-sm">
-                                    Great solution! Your approach using a hash map is optimal with O(n) time complexity.
-                                </p>
-                            </motion.div>
-                            <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.4, delay: 0.8 }}
-                                className="bg-slate-700/50 rounded-lg p-4"
-                            >
-                                <p className="text-gray-300 text-sm">
-                                    Try explaining the edge cases you considered.
-                                </p>
-                            </motion.div>
-                        </div>
-                    </motion.div>
+                    {/* Trust list & scroll indicator */}
+                    <div className="mt-16 flex flex-wrap items-center gap-x-6 gap-y-4 text-[11px] font-mono text-zinc-500">
+                        <span className="flex items-center gap-1.5">
+                            <svg className="w-3.5 h-3.5 text-[#2b4c3f]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                            </svg>
+                            No signup required
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                            <svg className="w-3.5 h-3.5 text-[#2b4c3f]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                            </svg>
+                            Real-time feedback
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                            <svg className="w-3.5 h-3.5 text-[#2b4c3f]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                            </svg>
+                            3 free sessions
+                        </span>
+                        
+                        <a href="#learn-more" className="w-8 h-8 rounded-full bg-[#1c1917]/90 text-white flex items-center justify-center hover:bg-[#1c1917] transition-all ml-2 shadow-sm">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                            </svg>
+                        </a>
+                    </div>
                 </div>
+
+                {/* Right Side: Interactive Live Interview Simulator (Light Theme Card) */}
+                <div className="lg:col-span-7">
+                    <LiveSimulator />
+                </div>
+
             </div>
         </section>
     );

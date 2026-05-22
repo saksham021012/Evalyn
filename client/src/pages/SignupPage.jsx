@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
+import { Code2 } from 'lucide-react';
 import { signup, verifyOTP } from '../services';
 import SignupForm from '../components/auth/Signup/SignupForm';
 import SignupOtpVerification from '../components/auth/Signup/SignupOtpVerification';
@@ -37,17 +38,17 @@ function SignupPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <div className="min-h-screen bg-grid-pattern flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
             {/* Logo */}
-            <Link to="/" className="absolute top-4 sm:top-6 left-4 sm:left-6 flex items-center gap-2 text-white font-bold text-lg sm:text-xl">
-                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                    <span className="text-white font-bold text-xs sm:text-sm">EV</span>
+            <Link to="/" className="absolute top-5 left-6 flex items-center gap-2.5 text-[#1c1917] font-bold text-xl font-serif">
+                <div className="bg-[#2b4c3f] p-1.5 rounded-lg flex items-center justify-center text-white">
+                    <Code2 className="w-4 h-4" />
                 </div>
-                <span className="hidden sm:inline">Evalyn</span>
+                <span className="tracking-tight hidden sm:inline">Evalyn</span>
             </Link>
 
             {/* Support Button */}
-            <button className="absolute top-4 sm:top-6 right-4 sm:right-6 bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base font-medium transition">
+            <button className="absolute top-4 sm:top-5 right-6 bg-white hover:bg-zinc-50 text-zinc-800 border border-zinc-200 shadow-sm px-5 py-2 text-xs font-mono tracking-widest uppercase font-bold transition rounded-xl">
                 Support
             </button>
 
@@ -59,11 +60,17 @@ function SignupPage() {
                 className="w-full max-w-md mt-12 sm:mt-0"
             >
                 {/* Header */}
-                <div className="text-center mb-6 sm:mb-8">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
+                <div className="text-center mb-8">
+                    <div className="inline-flex items-center gap-2 mb-4">
+                        <span className="w-1.5 h-1.5 bg-[#2b4c3f] rounded-full"></span>
+                        <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-500">
+                            {step === 1 ? 'New Account' : 'Verify Identity'}
+                        </span>
+                    </div>
+                    <h1 className="text-3xl font-extrabold text-[#1c1917] mb-2 font-serif tracking-tight">
                         {step === 1 ? 'Create your account' : 'Verify your email'}
                     </h1>
-                    <p className="text-sm sm:text-base text-gray-400">
+                    <p className="text-sm text-zinc-500 font-sans">
                         {step === 1
                             ? 'Get started with AI-powered mock interviews'
                             : `We sent a code to ${formData.email}`
@@ -72,7 +79,7 @@ function SignupPage() {
                 </div>
 
                 {/* Card */}
-                <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-2xl p-6 sm:p-8">
+                <div className="bg-white/90 backdrop-blur-md border border-zinc-200 shadow-sm rounded-xl p-6 sm:p-8">
                     {step === 1 ? (
                         <SignupForm
                             formData={formData}
