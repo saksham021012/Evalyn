@@ -144,7 +144,7 @@ export default function useInterview() {
         };
     }, []);
 
-    // Handle end session and start polling for complete evaluations
+    // Handle end session and redirect to completed screen
     const handleEndSession = useCallback(() => {
         const sessionId = getSessionId(interviewSession);
         if (!sessionId) {
@@ -152,69 +152,9 @@ export default function useInterview() {
             return;
         }
 
-        setIsFinalizing(true);
-        toast.success('Interview ended. Analyzing transcript...');
-
-        // Start progressive loading feedback bar
-        const progressTimer = setInterval(() => {
-            setEvaluationProgress(prev => {
-                if (prev >= 95) {
-                    clearInterval(progressTimer);
-                    return 95;
-                }
-                return prev + 5;
-            });
-        }, 1200);
-
-        let pollAttempts = 0;
-        const maxPollAttempts = 8; // 24 seconds total (8 attempts * 3s)
-
-        // Start polling the DB for complete status
-        pollingIntervalRef.current = setInterval(async () => {
-            pollAttempts++;
-            let isCompleted = false;
-
-            try {
-                const updatedSession = await dispatch(getInterviewSession(sessionId, false));
-                if (updatedSession && updatedSession.status === 'completed') {
-                    isCompleted = true;
-                }
-            } catch (err) {
-                console.error('Error polling interview session:', err);
-            }
-
-            if (isCompleted) {
-                clearInterval(pollingIntervalRef.current);
-                clearInterval(progressTimer);
-                setEvaluationProgress(100);
-                toast.success('Analysis ready! Viewing dashboard report.');
-                setTimeout(() => {
-                    navigate(`/interview/results/${sessionId}`);
-                }, 500);
-                return;
-            }
-
-            // Fallback: If agent didn't complete within max attempts, force complete
-            if (pollAttempts >= maxPollAttempts) {
-                clearInterval(pollingIntervalRef.current);
-                clearInterval(progressTimer);
-                console.log('[useInterview] Polling timed out. Forcing interview completion...');
-                toast.loading('Finalizing report...', { id: 'force-complete-toast' });
-                try {
-                    await dispatch(endInterview(sessionId));
-                    setEvaluationProgress(100);
-                    toast.success('Report generated!', { id: 'force-complete-toast' });
-                    setTimeout(() => {
-                        navigate(`/interview/results/${sessionId}`);
-                    }, 500);
-                } catch (forceErr) {
-                    console.error('Failed to force complete interview:', forceErr);
-                    toast.error('Failed to analyze session. Returning to dashboard.', { id: 'force-complete-toast' });
-                    navigate('/dashboard');
-                }
-            }
-        }, 3000);
-    }, [interviewSession, dispatch, navigate]);
+        toast.success('Interview ended. Preparing report...');
+        navigate(`/interview/completed/${sessionId}`);
+    }, [interviewSession, navigate]);
 
     // Handle when LiveKit disconnects (e.g. server closes connection, or user disconnects)
     const handleDisconnected = useCallback(() => {

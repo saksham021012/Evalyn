@@ -1,6 +1,6 @@
 import pdfParse from 'pdf-parse';
 import mammoth from 'mammoth';
-import { parseResumeWithAI } from '../controllers/aiController.js';
+import { parseResumeWithAI } from '../services/aiService.js';
 
 /**
  * Extract text from PDF file

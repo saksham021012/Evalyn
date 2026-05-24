@@ -7,6 +7,7 @@ import DashboardPage from './pages/DashboardPage';
 import NewSessionPage from './pages/NewSessionPage';
 import InterviewPage from './pages/InterviewPage';
 import ResultsPage from './pages/ResultsPage';
+import InterviewCompletedPage from './pages/InterviewCompletedPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import OpenRoute from './components/auth/OpenRoute';
 
@@ -58,6 +59,11 @@ function App() {
                 <Route path="/interview" element={
                     <ProtectedRoute>
                         <InterviewPage />
+                    </ProtectedRoute>
+                } />
+                <Route path="/interview/completed/:sessionId" element={
+                    <ProtectedRoute>
+                        <InterviewCompletedPage />
                     </ProtectedRoute>
                 } />
                 <Route path="/interview/results/:sessionId" element={

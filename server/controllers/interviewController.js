@@ -1,10 +1,4 @@
-import Interview from '../models/Interview.js';
-import Resume from '../models/Resume.js';
-import mongoose from 'mongoose';
-import { generateInterviewQuestions, evaluateAnswer, generateInterviewSummary } from './aiController.js';
-import { AccessToken } from 'livekit-server-sdk';
-import { config } from '../config/config.js';
-import User from '../models/User.js';
+import * as interviewService from '../services/interviewService.js';
 
 // Create new interview session
 // POST /api/interviews/create
@@ -38,59 +32,19 @@ export const createInterview = async (req, res) => {
             });
         }
 
-        // get resume
-        const resume = await Resume.findById(resumeId);
-
-        if (!resume) {
-            return res.status(404).json({
-                success: false,
-                message: 'Resume not found'
-            });
-        }
-
-        // Generate questions
-        const questionsResult = await generateInterviewQuestions(resume, role, difficulty, 10);
-
-        if (!questionsResult.success) {
-            return res.status(500).json({
-                success: false,
-                message: 'Failed to generate questions',
-                error: questionsResult.error
-            });
-        }
-
-        // Create interview 
-        const interview = new Interview({
-            user: userId,
-            resume: resumeId,
-            role,
-            difficulty,
-            status: 'not-started',
-            questions: questionsResult.questions.map((q, index) => ({
-                questionNumber: index + 1,
-                questionText: q.questionText,
-                questionType: q.questionType,
-                difficulty: q.difficulty,
-                relatedSkills: q.relatedSkills
-            })),
-            stats: {
-                totalQuestions: questionsResult.questions.length
-            }
-        });
-
-        await interview.save();
+        const data = await interviewService.createInterview(userId, resumeId, role, difficulty);
 
         res.status(201).json({
             success: true,
             message: 'Interview created successfully',
-            data: interview
+            data
         });
 
     } catch (error) {
         console.error('Error in createInterview:', error);
-        res.status(500).json({
+        res.status(error.statusCode || 500).json({
             success: false,
-            message: 'Server error',
+            message: error.message || 'Server error',
             error: error.message
         });
     }
@@ -102,27 +56,18 @@ export const getInterviewById = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const interview = await Interview.findById(id)
-            .populate('user', 'name email')
-            .populate('resume');
-
-        if (!interview) {
-            return res.status(404).json({
-                success: false,
-                message: 'Interview not found'
-            });
-        }
+        const data = await interviewService.getInterviewById(id);
 
         res.json({
             success: true,
-            data: interview
+            data
         });
 
     } catch (error) {
         console.error('Error in getInterviewById:', error);
-        res.status(500).json({
+        res.status(error.statusCode || 500).json({
             success: false,
-            message: 'Server error',
+            message: error.message || 'Server error',
             error: error.message
         });
     }
@@ -134,223 +79,24 @@ export const startInterview = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const interview = await Interview.findById(id);
-
-        if (!interview) {
-            return res.status(404).json({
-                success: false,
-                message: 'Interview not found'
-            });
-        }
-
-        interview.status = 'in-progress';
-        interview.startedAt = new Date();
-
-        if (interview.questions.length > 0) {
-            interview.questions[0].askedAt = new Date();
-        }
-
-        await interview.save();
+        const data = await interviewService.startInterview(id);
 
         res.json({
             success: true,
             message: 'Interview started',
-            data: {
-                interview,
-                currentQuestion: interview.questions[0]
-            }
+            data
         });
 
     } catch (error) {
         console.error('Error in startInterview:', error);
-        res.status(500).json({
+        res.status(error.statusCode || 500).json({
             success: false,
-            message: 'Server error',
+            message: error.message || 'Server error',
             error: error.message
         });
     }
 };
 
-// Get next question
-// GET /api/interviews/:id/next-question
-export const getNextQuestion = async (req, res) => {
-    try {
-        const { id } = req.params;
-
-        const interview = await Interview.findById(id);
-
-        if (!interview) {
-            return res.status(404).json({
-                success: false,
-                message: 'Interview not found'
-            });
-        }
-
-        // Find the first unanswered question (ignore skipped and submitted)
-        const nextQuestion = interview.questions.find(q => !q.answer?.submittedAt && !q.skipped);
-
-        if (!nextQuestion) {
-            return res.json({
-                success: true,
-                message: 'No more questions',
-                data: null
-            });
-        }
-
-        // mark question as asked 
-        if (!nextQuestion.askedAt) {
-            nextQuestion.askedAt = new Date();
-            await interview.save();
-        }
-
-        res.json({
-            success: true,
-            data: nextQuestion
-        });
-
-    } catch (error) {
-        console.error('Error in getNextQuestion:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error',
-            error: error.message
-        });
-    }
-};
-
-// Submit answer
-// POST /api/interviews/:id/answer
-export const submitAnswer = async (req, res) => {
-    try {
-        const { id } = req.params;
-
-        const { questionNumber, transcript } = req.body;
-
-        const interview = await Interview.findById(id).populate('resume');
-
-        if (!interview) {
-            return res.status(404).json({
-                success: false,
-                message: 'Interview not found'
-            });
-        }
-
-        const questionNum = parseInt(questionNumber, 10);
-
-        const question = interview.questions.find(q => {
-            return q.questionNumber === questionNum;
-        });
-
-        if (!question) {
-            return res.status(404).json({
-                success: false,
-                message: 'Question not found'
-            });
-        }
-        // Save answer
-        question.answer = {
-            transcript: transcript || '',
-            submittedAt: new Date()
-        };
-
-        console.log('💾 Saved answer:', question.answer);
-
-        // Calculate time spent
-        if (question.askedAt) {
-            question.timeSpent = Math.floor((new Date() - question.askedAt) / 1000);
-        }
-
-        // Evaluate answer using AI
-        const evaluationResult = await evaluateAnswer(question, transcript, interview.resume.parsedData);
-
-        if (evaluationResult.success) {
-            question.evaluation = {
-                ...evaluationResult.evaluation,
-                evaluatedAt: new Date()
-            };
-        }
-
-        // Update stats
-        interview.stats.questionsAnswered += 1;
-        interview.stats.totalTimeSpent += question.timeSpent || 0;
-
-
-
-        await interview.save();
-
-        res.json({
-            success: true,
-            message: 'Answer submitted and evaluated',
-            data: {
-                evaluation: question.evaluation
-            }
-        });
-
-    } catch (error) {
-        console.error('Error in submitAnswer:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error',
-            error: error.message
-        });
-    }
-};
-
-// Skip question
-// POST /api/interviews/:id/skip
-export const skipQuestion = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { questionNumber } = req.body;
-
-        const interview = await Interview.findById(id);
-
-        if (!interview) {
-            return res.status(404).json({
-                success: false,
-                message: 'Interview not found'
-            });
-        }
-
-        //  skip limit
-        if (interview.stats.questionsSkipped >= 3) {
-            return res.status(400).json({
-                success: false,
-                message: 'Skip limit reached'
-            });
-        }
-
-        // convert questionNumber to integer (FormData sends as string)
-        const questionNum = parseInt(questionNumber, 10);
-
-        const question = interview.questions.find(q => q.questionNumber === questionNum);
-
-        if (!question) {
-            return res.status(404).json({
-                success: false,
-                message: 'Question not found'
-            });
-        }
-
-        question.skipped = true;
-        interview.stats.questionsSkipped += 1;
-
-        await interview.save();
-
-        res.json({
-            success: true,
-            message: 'Question skipped'
-        });
-
-    } catch (error) {
-        console.error('Error in skipQuestion:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error',
-            error: error.message
-        });
-    }
-};
 
 // Complete interview
 // POST /api/interviews/:id/complete
@@ -358,43 +104,19 @@ export const completeInterview = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const interview = await Interview.findById(id).populate('resume');
-
-        if (!interview) {
-            return res.status(404).json({
-                success: false,
-                message: 'Interview not found'
-            });
-        }
-
-        // Generate overall summary
-        let summaryResult = { success: false };
-        try {
-            summaryResult = await generateInterviewSummary(interview, interview.resume?.parsedData);
-        } catch (summaryErr) {
-            console.error('Failed to generate summary during manual complete:', summaryErr);
-        }
-
-        if (summaryResult.success) {
-            interview.overallEvaluation = summaryResult.summary;
-        }
-
-        interview.status = 'completed';
-        interview.completedAt = new Date();
-
-        await interview.save();
+        const data = await interviewService.completeInterview(id);
 
         res.json({
             success: true,
             message: 'Interview completed',
-            data: interview
+            data
         });
 
     } catch (error) {
         console.error('Error in completeInterview:', error);
-        res.status(500).json({
+        res.status(error.statusCode || 500).json({
             success: false,
-            message: 'Server error',
+            message: error.message || 'Server error',
             error: error.message
         });
     }
@@ -406,22 +128,19 @@ export const getUserInterviews = async (req, res) => {
     try {
         const { userId } = req.params;
 
-        const interviews = await Interview.find({ user: userId })
-            .populate('resume', 'fileName parsedData.experienceLevel')
-            .sort({ createdAt: -1 })
-            .select('-questions.answer.transcript'); // Exclude transcripts for performance
+        const data = await interviewService.getUserInterviews(userId);
 
         res.json({
             success: true,
-            count: interviews.length,
-            data: interviews
+            count: data.length,
+            data
         });
 
     } catch (error) {
         console.error('Error in getUserInterviews:', error);
-        res.status(500).json({
+        res.status(error.statusCode || 500).json({
             success: false,
-            message: 'Server error',
+            message: error.message || 'Server error',
             error: error.message
         });
     }
@@ -434,24 +153,7 @@ export const deleteInterview = async (req, res) => {
         const { id } = req.params;
         const userId = req.userId;
 
-        const interview = await Interview.findById(id);
-
-        if (!interview) {
-            return res.status(404).json({
-                success: false,
-                message: 'Interview not found'
-            });
-        }
-
-        // Check ownership
-        if (interview.user.toString() !== userId) {
-            return res.status(401).json({
-                success: false,
-                message: 'Unauthorized'
-            });
-        }
-
-        await Interview.findByIdAndDelete(id);
+        await interviewService.deleteInterview(userId, id);
 
         res.json({
             success: true,
@@ -460,9 +162,9 @@ export const deleteInterview = async (req, res) => {
 
     } catch (error) {
         console.error('Error in deleteInterview:', error);
-        res.status(500).json({
+        res.status(error.statusCode || 500).json({
             success: false,
-            message: 'Server error',
+            message: error.message || 'Server error',
             error: error.message
         });
     }
@@ -482,61 +184,18 @@ export const getLiveKitToken = async (req, res) => {
             });
         }
 
-        const interview = await Interview.findById(id);
-        if (!interview) {
-            return res.status(404).json({
-                success: false,
-                message: 'Interview not found'
-            });
-        }
-
-        const user = await User.findById(userId);
-        const name = user ? user.name : 'Candidate';
-
-        const roomName = `interview_${id}`;
-
-        const apiKey = config.livekit.apiKey;
-        const apiSecret = config.livekit.apiSecret;
-        const serverUrl = config.livekit.serverUrl;
-
-        // Fallback for demo or development if not configured
-        if (!apiKey || !apiSecret || !serverUrl) {
-            return res.status(500).json({
-                success: false,
-                message: 'LiveKit server credentials are not configured in backend .env'
-            });
-        }
-
-        // Create Access Token
-        const at = new AccessToken(apiKey, apiSecret, {
-            identity: userId.toString(),
-            name: name,
-        });
-
-        at.addGrant({
-            roomJoin: true,
-            room: roomName,
-            canPublish: true,
-            canSubscribe: true,
-            canPublishData: true
-        });
-
-        const token = await at.toJwt();
+        const data = await interviewService.getLiveKitToken(userId, id);
 
         res.json({
             success: true,
-            data: {
-                token,
-                roomName,
-                serverUrl
-            }
+            data
         });
 
     } catch (error) {
         console.error('Error in getLiveKitToken:', error);
-        res.status(500).json({
+        res.status(error.statusCode || 500).json({
             success: false,
-            message: 'Server error',
+            message: error.message || 'Server error',
             error: error.message
         });
     }

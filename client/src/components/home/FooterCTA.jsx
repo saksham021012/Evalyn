@@ -4,7 +4,7 @@ function FooterCTA() {
     return (
         <section className="py-32 px-6 bg-transparent border-t border-zinc-200 relative overflow-hidden">
             <div className="max-w-4xl mx-auto text-center relative z-10">
-                
+
                 <div className="inline-flex items-center gap-2 mb-6">
                     <span className="w-1.5 h-1.5 bg-[#2b4c3f] rounded-full"></span>
                     <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-500">
@@ -15,7 +15,7 @@ function FooterCTA() {
                 <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-[#1c1917] mb-6 font-serif">
                     Start diagnosing your technical gaps today.
                 </h2>
-                
+
                 <p className="text-zinc-600 text-sm md:text-base mb-10 max-w-lg mx-auto leading-relaxed font-sans">
                     Join engineers using Evalyn to refine their system design patterns, concurrency details, and communication accuracy.
                 </p>
@@ -38,7 +38,7 @@ function FooterCTA() {
                 <div className="mt-12 flex flex-wrap items-center justify-center gap-6 text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
                     <span>// No credit card required</span>
                     <span className="hidden sm:inline text-zinc-300">•</span>
-                    <span>// Instant compiler access</span>
+
                 </div>
 
             </div>

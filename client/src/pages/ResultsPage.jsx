@@ -9,6 +9,8 @@ import KeyTakeaways from '../components/results/KeyTakeaways';
 import ScoreBreakdown from '../components/results/ScoreBreakdown';
 import TopHighlights from '../components/results/TopHighlights';
 import SessionEvidence from '../components/results/SessionEvidence';
+import GrowthOpportunities from '../components/results/GrowthOpportunities';
+import ResumeSync from '../components/results/ResumeSync';
 
 function ResultsPage() {
     const { sessionId } = useParams();
@@ -84,11 +86,20 @@ function ResultsPage() {
                         <KeyTakeaways takeaways={results.keyTakeaways || []} />
 
                         <ScoreBreakdown scores={results.scoreBreakdown || []} />
+                        
+                        {(results.growthOpportunities && results.growthOpportunities.length > 0) && (
+                            <GrowthOpportunities opportunities={results.growthOpportunities} />
+                        )}
                     </div>
 
                     {/* Right Column - 1/3 width on desktop */}
                     <div className="space-y-4 sm:space-y-6">
                         <TopHighlights highlights={results.topHighlights || []} />
+                        
+                        {(results.resumeSync && results.resumeSync.length > 0) && (
+                            <ResumeSync items={results.resumeSync} />
+                        )}
+                        
                         <SessionEvidence evidence={results.sessionEvidence || []} />
                     </div>
                 </div>

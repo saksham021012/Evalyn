@@ -1,6 +1,4 @@
-import Resume from '../models/Resume.js';
-import mongoose from 'mongoose';
-import { parseResume } from '../utils/resumeParser.js';
+import * as resumeService from '../services/resumeService.js';
 
 // Upload and parse resume
 // POST /api/resumes/upload
@@ -13,7 +11,6 @@ export const uploadResumeController = async (req, res) => {
             });
         }
 
-        // userId is attached by authenticatye middleware
         const userId = req.userId;
 
         if (!userId) {
@@ -23,54 +20,7 @@ export const uploadResumeController = async (req, res) => {
             });
         }
 
-        const file = req.file;
-        const fileType = file.mimetype === 'application/pdf' ? 'pdf' : 'docx';
-
-        // Parse the resume
-        const parseResult = await parseResume(file.buffer, fileType);
-
-        if (!parseResult.success) {
-            return res.status(500).json({
-                success: false,
-                message: 'Failed to parse resume',
-                error: parseResult.error
-            });
-        }
-
-        // Store file in GridFS using Mongoose
-        const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
-            bucketName: 'resumes'
-        });
-
-        const uploadStream = bucket.openUploadStream(file.originalname, {
-            contentType: file.mimetype,
-            metadata: {
-                userId,
-                uploadDate: new Date()
-            }
-        });
-
-        uploadStream.end(file.buffer);
-
-        await new Promise((resolve, reject) => {
-            uploadStream.on('finish', resolve);
-            uploadStream.on('error', reject);
-        });
-
-        // Create resume document using Mongoose model
-        const resume = new Resume({
-            user: userId,
-            fileName: file.originalname,
-            fileType,
-            fileSize: file.size,
-            fileId: uploadStream.id,
-            parsedData: parseResult.parsedData,
-            rawText: parseResult.rawText,
-            targetRole: req.body.targetRole || 'Software Engineer', // Add default or ensure it's passed
-            parsingStatus: 'completed'
-        });
-
-        await resume.save();
+        const resume = await resumeService.uploadAndParseResume(userId, req.file, req.body.targetRole);
 
         res.status(201).json({
             success: true,
@@ -82,9 +32,9 @@ export const uploadResumeController = async (req, res) => {
 
     } catch (error) {
         console.error('Error in uploadResumeController:', error);
-        res.status(500).json({
+        res.status(error.statusCode || 500).json({
             success: false,
-            message: 'Server error',
+            message: error.message || 'Server error',
             error: error.message
         });
     }
@@ -96,25 +46,18 @@ export const getResumeById = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const resume = await Resume.findById(id).populate('user', 'name email');
-
-        if (!resume) {
-            return res.status(404).json({
-                success: false,
-                message: 'Resume not found'
-            });
-        }
+        const data = await resumeService.getResumeById(id);
 
         res.json({
             success: true,
-            data: resume
+            data
         });
 
     } catch (error) {
         console.error('Error in getResumeById:', error);
-        res.status(500).json({
+        res.status(error.statusCode || 500).json({
             success: false,
-            message: 'Server error',
+            message: error.message || 'Server error',
             error: error.message
         });
     }
@@ -126,21 +69,19 @@ export const getUserResumes = async (req, res) => {
     try {
         const { userId } = req.params;
 
-        const resumes = await Resume.find({ user: userId })
-            .sort({ createdAt: -1 })
-            .select('-rawText'); // Exclude raw text for performance
+        const data = await resumeService.getUserResumes(userId);
 
         res.json({
             success: true,
-            count: resumes.length,
-            data: resumes
+            count: data.length,
+            data
         });
 
     } catch (error) {
         console.error('Error in getUserResumes:', error);
-        res.status(500).json({
+        res.status(error.statusCode || 500).json({
             success: false,
-            message: 'Server error',
+            message: error.message || 'Server error',
             error: error.message
         });
     }
@@ -152,24 +93,7 @@ export const deleteResume = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const resume = await Resume.findById(id);
-
-        if (!resume) {
-            return res.status(404).json({
-                success: false,
-                message: 'Resume not found'
-            });
-        }
-
-        // Delete file from GridFS
-        const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
-            bucketName: 'resumes'
-        });
-
-        await bucket.delete(resume.fileId);
-
-        // Delete resume document
-        await Resume.findByIdAndDelete(id);
+        await resumeService.deleteResume(id);
 
         res.json({
             success: true,
@@ -178,9 +102,9 @@ export const deleteResume = async (req, res) => {
 
     } catch (error) {
         console.error('Error in deleteResume:', error);
-        res.status(500).json({
+        res.status(error.statusCode || 500).json({
             success: false,
-            message: 'Server error',
+            message: error.message || 'Server error',
             error: error.message
         });
     }
@@ -193,37 +117,19 @@ export const setActiveResume = async (req, res) => {
         const { id } = req.params;
         const userId = req.userId;
 
-        // 1. Deactivate all other resumes for this user
-        await Resume.updateMany(
-            { user: userId, _id: { $ne: id } },
-            { $set: { isActive: false } }
-        );
-
-        // 2. Set the requested resume as active
-        const updatedResume = await Resume.findOneAndUpdate(
-            { _id: id, user: userId },
-            { $set: { isActive: true } },
-            { new: true }
-        );
-
-        if (!updatedResume) {
-            return res.status(404).json({
-                success: false,
-                message: 'Resume not found'
-            });
-        }
+        const data = await resumeService.setActiveResume(userId, id);
 
         res.json({
             success: true,
             message: 'Resume set as active',
-            data: updatedResume
+            data
         });
 
     } catch (error) {
         console.error('Error in setActiveResume:', error);
-        res.status(500).json({
+        res.status(error.statusCode || 500).json({
             success: false,
-            message: 'Server error',
+            message: error.message || 'Server error',
             error: error.message
         });
     }
@@ -235,26 +141,10 @@ export const downloadResume = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const resume = await Resume.findById(id);
-
-        if (!resume) {
-            return res.status(404).json({
-                success: false,
-                message: 'Resume not found'
-            });
-        }
-
-        const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
-            bucketName: 'resumes'
-        });
-
-        const downloadStream = bucket.openDownloadStream(resume.fileId);
-
-        // Sanitize filename and set content type
-        const safeFileName = resume.fileName.replace(/[^a-z0-9.]/gi, '_').toLowerCase();
+        const { downloadStream, safeFileName, contentType } = await resumeService.getResumeDownloadStream(id);
 
         res.set({
-            'Content-Type': resume.fileType === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'Content-Type': contentType,
             'Content-Disposition': `attachment; filename="${safeFileName}"`
         });
 
@@ -269,9 +159,9 @@ export const downloadResume = async (req, res) => {
 
     } catch (error) {
         console.error('Error in downloadResume:', error);
-        res.status(500).json({
+        res.status(error.statusCode || 500).json({
             success: false,
-            message: 'Server error',
+            message: error.message || 'Server error',
             error: error.message
         });
     }

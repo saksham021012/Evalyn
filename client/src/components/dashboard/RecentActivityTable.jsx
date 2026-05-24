@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Trash2, BarChart3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 
 function RecentActivityTable({ recentActivity, onDelete, onViewResults }) {
     const navigate = useNavigate();
@@ -55,7 +56,13 @@ function RecentActivityTable({ recentActivity, onDelete, onViewResults }) {
                                 animate={{ opacity: 1 }}
                                 transition={{ duration: 0.2, delay: 0.4 + index * 0.05 }}
                                 className="border-b border-[#f0ede8] last:border-0 hover:bg-[#f5f4f0] transition-colors cursor-pointer group"
-                                onClick={() => onViewResults(activity.id)}
+                                onClick={() => {
+                                    if (activity.status === 'GRADING') {
+                                        toast.error("Evaluation is in progress. Please wait for the report to compile.");
+                                    } else {
+                                        onViewResults(activity.id);
+                                    }
+                                }}
                             >
                                 {/* Candidate */}
                                 <td className="px-4 sm:px-6 py-4">
@@ -88,26 +95,37 @@ function RecentActivityTable({ recentActivity, onDelete, onViewResults }) {
 
                                 {/* Score */}
                                 <td className="px-4 sm:px-6 py-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex-1 min-w-[50px] max-w-[80px] bg-[#e7e5e0] rounded-full h-1.5">
-                                            <div
-                                                className="bg-[#2b4c3f] h-1.5 rounded-full"
-                                                style={{ width: `${activity.score}%` }}
-                                            />
-                                        </div>
-                                        <span className="text-[#1c1917] font-bold text-xs font-mono whitespace-nowrap">
-                                            {activity.score}/100
+                                    {activity.status === 'GRADING' ? (
+                                        <span className="text-amber-600 font-bold text-[10px] font-mono tracking-wider whitespace-nowrap animate-pulse">
+                                            GRADING...
                                         </span>
-                                    </div>
+                                    ) : (
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex-1 min-w-[50px] max-w-[80px] bg-[#e7e5e0] rounded-full h-1.5">
+                                                <div
+                                                    className="bg-[#2b4c3f] h-1.5 rounded-full"
+                                                    style={{ width: `${activity.score}%` }}
+                                                />
+                                            </div>
+                                            <span className="text-[#1c1917] font-bold text-xs font-mono whitespace-nowrap">
+                                                {activity.score}/100
+                                            </span>
+                                        </div>
+                                    )}
                                 </td>
 
                                 {/* Status */}
                                 <td className="px-4 sm:px-6 py-4 hidden lg:table-cell">
-                                    <span className={`px-2.5 py-1 rounded-md font-mono text-[9px] font-bold tracking-[0.15em] uppercase border ${
+                                    <span className={`px-2.5 py-1 rounded-md font-mono text-[9px] font-bold tracking-[0.15em] uppercase border flex items-center gap-1.5 w-fit ${
                                         activity.status === 'COMPLETED'
                                             ? 'bg-[#2b4c3f]/[0.08] text-[#2b4c3f] border-[#2b4c3f]/20'
-                                            : 'bg-amber-50 text-amber-700 border-amber-200'
+                                            : activity.status === 'GRADING'
+                                            ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                            : 'bg-[#faf9f6] text-[#a8a29e] border-[#e7e5e0]'
                                     }`}>
+                                        {activity.status === 'GRADING' && (
+                                            <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-ping" />
+                                        )}
                                         {activity.status}
                                     </span>
                                 </td>
@@ -116,11 +134,22 @@ function RecentActivityTable({ recentActivity, onDelete, onViewResults }) {
                                 <td className="px-4 sm:px-6 py-4">
                                     <div className="flex items-center gap-2">
                                         <motion.button
-                                            whileHover={{ scale: 1.08 }}
-                                            whileTap={{ scale: 0.93 }}
-                                            onClick={(e) => { e.stopPropagation(); onViewResults(activity.id); }}
-                                            title="View Results"
-                                            className="p-1.5 bg-[#2b4c3f]/[0.08] text-[#2b4c3f] rounded-lg hover:bg-[#2b4c3f] hover:text-white transition-all duration-200"
+                                            whileHover={activity.status === 'GRADING' ? {} : { scale: 1.08 }}
+                                            whileTap={activity.status === 'GRADING' ? {} : { scale: 0.93 }}
+                                            onClick={(e) => { 
+                                                e.stopPropagation(); 
+                                                if (activity.status === 'GRADING') {
+                                                    toast.error("Evaluation is in progress. Please wait for the report to compile.");
+                                                } else {
+                                                    onViewResults(activity.id); 
+                                                }
+                                            }}
+                                            title={activity.status === 'GRADING' ? "Evaluation In Progress" : "View Results"}
+                                            className={`p-1.5 rounded-lg transition-all duration-200 ${
+                                                activity.status === 'GRADING'
+                                                    ? 'bg-amber-50 text-amber-500 border border-amber-200 cursor-not-allowed'
+                                                    : 'bg-[#2b4c3f]/[0.08] text-[#2b4c3f] hover:bg-[#2b4c3f] hover:text-white'
+                                            }`}
                                         >
                                             <BarChart3 className="w-4 h-4" />
                                         </motion.button>

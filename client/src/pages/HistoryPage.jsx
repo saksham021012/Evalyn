@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
+import { toast } from 'react-hot-toast';
 import Sidebar from '../components/layout/Sidebar';
 import { getUserInterviews, deleteInterview } from '../services/operations/interviewAPI';
 import HistoryHeader from '../components/history/HistoryHeader';
@@ -36,6 +37,35 @@ function HistoryPage() {
     useEffect(() => {
         fetchInterviews();
     }, [user?.id, dispatch]);
+
+    // Local background polling for any 'grading' sessions in History
+    useEffect(() => {
+        if (!user?.id || interviews.length === 0) return;
+
+        const hasGradingSession = interviews.some(i => i.status === 'grading');
+
+        if (hasGradingSession) {
+            const pollInterval = setInterval(async () => {
+                try {
+                    // Fetch list in background
+                    const interviewsData = await dispatch(getUserInterviews(user.id));
+                    const updatedList = interviewsData || [];
+                    
+                    const isStillGrading = updatedList.some(i => i.status === 'grading');
+                    setInterviews(updatedList);
+
+                    if (!isStillGrading) {
+                        clearInterval(pollInterval);
+                        toast.success("Your report is ready! Click View Results to read it.", { duration: 5000 });
+                    }
+                } catch (pollErr) {
+                    console.error("History background poll failed:", pollErr);
+                }
+            }, 5000);
+
+            return () => clearInterval(pollInterval);
+        }
+    }, [interviews, dispatch, user?.id]);
 
     const handleDelete = async (e, sessionId) => {
         e.stopPropagation(); // Prevents row click navigation

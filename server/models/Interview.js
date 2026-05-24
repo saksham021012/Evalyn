@@ -26,8 +26,12 @@ const interviewSchema = new mongoose.Schema({
     // Interview status
     status: {
         type: String,
-        enum: ['not-started', 'in-progress', 'completed', 'abandoned'],
+        enum: ['not-started', 'in-progress', 'grading', 'completed', 'abandoned'],
         default: 'not-started'
+    },
+    gradingProgress: {
+        type: Number,
+        default: 0
     },
 
     // Questions and answers
@@ -130,6 +134,12 @@ const interviewSchema = new mongoose.Schema({
 
         // Resume improvement suggestions
         resumeSuggestions: [String],
+
+        // Growth Opportunities
+        growthOpportunities: [{
+            title: String,
+            description: String
+        }],
 
         // Overall feedback
         feedback: String,

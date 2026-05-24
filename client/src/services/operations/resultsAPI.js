@@ -52,6 +52,10 @@ export function getResults(sessionId) {
                     title: g.title,
                     description: g.description
                 })),
+                resumeSync: (evaluation.resumeSuggestions || []).map((s, i) => ({
+                    title: `Resume Tip ${i + 1}`,
+                    description: s
+                })),
                 sessionEvidence: (interview.questions || [])
                     .filter(q => q.answer?.transcript)
                     .map(q => ({

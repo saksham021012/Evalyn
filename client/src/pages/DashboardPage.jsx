@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import Sidebar from '../components/layout/Sidebar';
 import DashboardTopBar from '../components/dashboard/DashboardTopBar';
 import StatsCards from '../components/dashboard/StatsCards';
@@ -41,6 +42,35 @@ function DashboardPage() {
     useEffect(() => {
         fetchData();
     }, [dispatch, token, user]);
+
+    // Local background polling for any 'grading' sessions
+    useEffect(() => {
+        if (!user?.id || interviews.length === 0) return;
+
+        const hasGradingSession = interviews.some(i => i.status === 'grading');
+
+        if (hasGradingSession) {
+            const pollInterval = setInterval(async () => {
+                try {
+                    // Fetch list in background without showing global loading skeleton
+                    const interviewsData = await dispatch(getUserInterviews(user.id));
+                    const updatedList = interviewsData || [];
+                    
+                    const isStillGrading = updatedList.some(i => i.status === 'grading');
+                    setInterviews(updatedList);
+
+                    if (!isStillGrading) {
+                        clearInterval(pollInterval);
+                        toast.success("Your report is ready! Click View Results to read it.", { duration: 5000 });
+                    }
+                } catch (pollErr) {
+                    console.error("Dashboard background poll failed:", pollErr);
+                }
+            }, 5000);
+
+            return () => clearInterval(pollInterval);
+        }
+    }, [interviews, dispatch, user?.id]);
 
     const handleDelete = async (sessionId) => {
         if (window.confirm('Are you sure you want to delete this session? This will remove all associated results and videos.')) {

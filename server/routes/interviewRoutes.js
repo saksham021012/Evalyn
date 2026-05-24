@@ -3,9 +3,6 @@ import {
     createInterview,
     getInterviewById,
     startInterview,
-    getNextQuestion,
-    submitAnswer,
-    skipQuestion,
     completeInterview,
     getUserInterviews,
     deleteInterview,
@@ -34,14 +31,6 @@ router.post('/:id/token', getLiveKitToken);
 // Start interview
 router.post('/:id/start', startInterview);
 
-// Get next question
-router.get('/:id/next-question', getNextQuestion);
-
-// Submit answer
-router.post('/:id/answer', submitAnswer);
-
-// Skip question
-router.post('/:id/skip', skipQuestion);
 
 // Complete interview
 router.post('/:id/complete', completeInterview);

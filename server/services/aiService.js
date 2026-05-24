@@ -5,19 +5,30 @@ import { config } from '../config/config.js';
 const groq = new Groq({ apiKey: config.groqApiKey });
 
 // Helper to get answers from Groq
-const getGroqCompletion = async (prompt) => {
-  const completion = await groq.chat.completions.create({
-    messages: [
-      {
-        role: "user",
-        content: prompt,
-      },
-    ],
-    model: "llama-3.1-8b-instant",
-    temperature: 0.2, // Low temperature for more deterministic JSON output
-  });
+const getGroqCompletion = async (prompt, retries = 4, modelOverride = "llama-3.1-8b-instant") => {
+  const messages = [{ role: "user", content: prompt }];
+  const model = modelOverride;
+  const temperature = 0.2; // Low temperature for more deterministic JSON output
 
-  return completion.choices[0]?.message?.content || "";
+  for (let i = 0; i < retries; i++) {
+    try {
+      const completion = await groq.chat.completions.create({ messages, model, temperature });
+      return completion.choices[0]?.message?.content || "";
+    } catch (err) {
+      if (err.status === 429 && i < retries - 1) {
+        const retryAfter = Number(err.headers?.['retry-after'] ?? 15);
+        if (retryAfter > 15) {
+          console.log(`[AI] Rate limit retry-after is too long (${retryAfter}s). Exceeds agent timeout. Aborting retries.`);
+          throw err;
+        }
+        const waitMs = (retryAfter * 1000) + (i * 2000);
+        console.log(`[AI] Rate limited, retrying in ${waitMs}ms (attempt ${i + 1}/${retries})...`);
+        await new Promise(r => setTimeout(r, waitMs));
+      } else {
+        throw err;
+      }
+    }
+  }
 };
 
 // Helper to clean and parse JSON
@@ -131,8 +142,8 @@ IMPORTANT RULES:
 `;
 
     const response = await getGroqCompletion(prompt);
-    console.log('Resume Parsing Response:', response);
     const parsedData = parseJSON(response);
+    console.log(`[AI] Parsed resume for: ${parsedData.name || 'Unknown'}. Found ${parsedData.skills?.length || 0} skills, ${parsedData.projects?.length || 0} projects.`);
 
     // Sanitize and validate enums before saving to prevent Mongoose schema validation failures
     if (parsedData && Array.isArray(parsedData.skills)) {
@@ -236,8 +247,8 @@ Return ONLY a valid JSON array (no markdown, no code blocks) with this structure
 `;
 
     const response = await getGroqCompletion(prompt);
-    console.log('Interview Questions Response:', response);
     const questions = parseJSON(response);
+    console.log(`[AI] Generated ${questions.length || 0} questions for ${role} (${difficulty}).`);
 
     return {
       success: true,
@@ -323,13 +334,9 @@ Consider:
 
 `;
 
-    const response = await getGroqCompletion(prompt);
-
-    console.log('AI Evaluation Raw Response:', response);
-
+    const response = await getGroqCompletion(prompt, 4, "llama-3.3-70b-versatile");
     const evaluation = parseJSON(response);
-
-    console.log('Parsed Evaluation:', evaluation);
+    console.log(`[AI] Evaluated answer. Score: ${evaluation.score}/10. Match: ${evaluation.matchesResumeClaim ? 'Yes' : 'No'}`);
 
     return {
       success: true,
@@ -405,8 +412,8 @@ Be honest, constructive, and specific. Highlight resume exaggerations if found.
 `;
 
     const response = await getGroqCompletion(prompt);
-    console.log('Interview Summary Response:', response);
     const summary = parseJSON(response);
+    console.log(`[AI] Generated overall summary. Grade: ${summary.grade}, Recommendation: ${summary.recommendation}`);
 
     return {
       success: true,

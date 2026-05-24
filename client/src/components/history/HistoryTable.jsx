@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { BarChart3, Trash2 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 import HistorySkeletonRow from './HistorySkeletonRow';
 
 function HistoryTable({ interviews, loading, navigate, onDelete }) {
@@ -58,7 +59,13 @@ function HistoryTable({ interviews, loading, navigate, onDelete }) {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.05 }}
                                 className="hover:bg-[#f5f4f0] transition-colors group cursor-pointer"
-                                onClick={() => navigate(`/interview/results/${interview._id}`)}
+                                onClick={() => {
+                                    if (interview.status === 'grading') {
+                                        toast.error("Evaluation is in progress. Please wait for the report to compile.");
+                                    } else {
+                                        navigate(`/interview/results/${interview._id}`);
+                                    }
+                                }}
                             >
                                 <td className="px-4 sm:px-6 py-5 text-xs text-[#a8a29e] font-mono">{formatDate(interview.createdAt)}</td>
                                 <td className="px-4 sm:px-6 py-5 text-sm text-[#1c1917] font-medium tracking-tight">{interview.role}</td>
@@ -82,6 +89,10 @@ function HistoryTable({ interviews, loading, navigate, onDelete }) {
                                                     {Math.round(interview.overallEvaluation?.percentage || 0)}/100
                                                 </span>
                                             </>
+                                        ) : interview.status === 'grading' ? (
+                                            <span className="text-amber-600 font-bold text-[10px] font-mono tracking-wider whitespace-nowrap animate-pulse">
+                                                Grading...
+                                            </span>
                                         ) : (
                                             <span className="text-[#a8a29e] text-xs font-mono italic">In Progress</span>
                                         )}
@@ -90,14 +101,22 @@ function HistoryTable({ interviews, loading, navigate, onDelete }) {
                                 <td className="px-4 sm:px-6 py-5">
                                     <div className="flex items-center gap-2 sm:gap-3">
                                         <motion.button
-                                            whileHover={{ scale: 1.08 }}
-                                            whileTap={{ scale: 0.93 }}
+                                            whileHover={interview.status === 'grading' ? {} : { scale: 1.08 }}
+                                            whileTap={interview.status === 'grading' ? {} : { scale: 0.93 }}
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                navigate(`/interview/results/${interview._id}`);
+                                                if (interview.status === 'grading') {
+                                                    toast.error("Evaluation is in progress. Please wait for the report to compile.");
+                                                } else {
+                                                    navigate(`/interview/results/${interview._id}`);
+                                                }
                                             }}
-                                            className="p-1.5 bg-[#2b4c3f]/[0.08] text-[#2b4c3f] rounded-lg hover:bg-[#2b4c3f] hover:text-white transition-all duration-200"
-                                            title="View Results"
+                                            className={`p-1.5 rounded-lg transition-all duration-200 ${
+                                                interview.status === 'grading'
+                                                    ? 'bg-amber-50 text-amber-500 border border-amber-200 cursor-not-allowed'
+                                                    : 'bg-[#2b4c3f]/[0.08] text-[#2b4c3f] hover:bg-[#2b4c3f] hover:text-white'
+                                            }`}
+                                            title={interview.status === 'grading' ? "Evaluation In Progress" : "View Results"}
                                         >
                                             <BarChart3 className="w-4 h-4" />
                                         </motion.button>
