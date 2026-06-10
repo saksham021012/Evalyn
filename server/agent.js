@@ -224,7 +224,12 @@ export default defineAgent({
 });
 
 // Run agent runner CLI
+const port = process.env.PORT ? parseInt(process.env.PORT, 10) : undefined;
+const isProduction = process.env.NODE_ENV === 'production' || process.env.LIVEKIT_PRODUCTION === 'true';
+
 cli.runApp(new ServerOptions({
   agent: fileURLToPath(import.meta.url),
-  logLevel: process.env.LIVEKIT_LOG_LEVEL || 'info'
+  logLevel: process.env.LIVEKIT_LOG_LEVEL || 'info',
+  port,
+  production: isProduction
 }));

@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: ai-interviewer-agent
+    runtime: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node agent.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: LIVEKIT_PRODUCTION
+        value: "true"
+      - key: LIVEKIT_LOG_LEVEL
+        value: info
