@@ -22,6 +22,11 @@ import { finalizeInterview } from './services/interviewFinalizationService.js';
 
 dotenv.config();
 
+// Default to 'start' command if no command provided (for Render/production)
+if (process.argv.length === 2) {
+  process.argv.push('start');
+}
+
 // Establish DB connection for the agent worker process
 connectDB();
 
