@@ -4,7 +4,7 @@ services:
     runtime: node
     rootDir: server
     buildCommand: npm install
-    startCommand: node agent.js
+    startCommand: node agent.js start
     envVars:
       - key: NODE_ENV
         value: production
