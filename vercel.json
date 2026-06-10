@@ -1,0 +1,8 @@
+{
+  "buildCommand": "npm run build --prefix client",
+  "outputDirectory": "client/dist",
+  "installCommand": "npm install && npm install --prefix client",
+  "env": {
+    "VITE_API_URL": "https://evalyn.onrender.com/api"
+  }
+}
